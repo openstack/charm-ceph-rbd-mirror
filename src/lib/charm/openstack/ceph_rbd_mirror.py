@@ -12,30 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
-
 import charms_openstack.charm
 import charms_openstack.adapters
 
 
-class CephRBDMirrorCharm(charms_openstack.charm.OpenStackCharm):
-    # Override source config key to be compatible with the other Ceph charms
-    source_config_key = 'source'
-
+class CephRBDMirrorCharm(charms_openstack.charm.CephCharm):
     # We require Ceph 12.2 Luminous or later for HA support in the Ceph
     # rbd-mirror daemon.  Luminous appears in UCA at pike.
     release = 'pike'
     name = 'ceph-rbd-mirror'
     packages = ['rbd-mirror']
     python_version = 3
-    required_relations = ['ceph-cluster']
-    release_pkg = 'rbd-mirror'
-    package_codenames = {
-        'rbd-mirror': collections.OrderedDict([
-            ('12', 'pike'),
-            ('13', 'rocky'),
-        ]),
-    }
+    required_relations = ['ceph-local', 'ceph-remote']
+
+    def config_changed(self):
+        """Check for upgrade."""
+        self.upgrade_if_available(None)
 
     def install(self):
         """We override install function to configure source before installing

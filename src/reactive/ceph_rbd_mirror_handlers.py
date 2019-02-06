@@ -26,12 +26,38 @@ charms_openstack.bus.discover()
 charm.use_defaults(
     'charm.installed',
     'config.changed',
-    'update-status')
+    'update-status',
+    'upgrade-charm')
 
 
-@reactive.when('ceph-cluster.connected')
+@reactive.when_all('ceph-local.connected', 'ceph-remote.connected')
+@reactive.when_not_all('ceph-local.available', 'ceph-remote.available')
 def ceph_connected():
+    for flag in ('ceph-local.connected', 'ceph-remote.connected'):
+        endpoint = reactive.relations.endpoint_from_flag(flag)
+        endpoint.request_key()
+
     with charm.provide_charm_instance() as charm_instance:
         ch_core.hookenv.log('Ceph connected, charm_instance @ {}'
                             .format(charm_instance),
                             level=ch_core.hookenv.DEBUG)
+        charm_instance.assess_status()
+
+
+@reactive.when_all('ceph-local.available', 'ceph-remote.available')
+def ceph_available():
+    mon_hosts = {}
+    for flag in ('ceph-local.available', 'ceph-remote.available'):
+        endpoint = reactive.relations.endpoint_from_flag(flag)
+        mon_hosts[endpoint.endpoint_name] = endpoint.mon_hosts
+        for relation in endpoint.relations:
+            for unit in relation.units:
+                ch_core.hookenv.log('{}: "{}"'.format(flag, unit.received),
+                                    level=ch_core.hookenv.INFO)
+
+    with charm.provide_charm_instance() as charm_instance:
+        ch_core.hookenv.log('Ceph available, mon_hosts: "{}" '
+                            'charm_instance @ {}'
+                            .format(mon_hosts, charm_instance),
+                            level=ch_core.hookenv.DEBUG)
+        charm_instance.assess_status()

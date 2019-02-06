@@ -28,5 +28,7 @@ provides:
     interface: nrpe-external-master
     scope: container
 requires:
-  ceph-cluster:
-    interface: ceph-client
+  ceph-local:
+    interface: ceph-rbd-mirror
+  ceph-remote:
+    interface: ceph-rbd-mirror

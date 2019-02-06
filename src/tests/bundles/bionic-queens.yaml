@@ -1,0 +1,53 @@
+series: bionic
+applications:
+  ceph-mon:
+    charm: cs:~fnordahl/ceph-mon-rbd-mirror
+    num_units: 3
+    options:
+      expected-osd-count: 3
+      source: distro
+  ceph-osd:
+    charm: cs:~openstack-charmers-next/ceph-osd
+    num_units: 3
+    options:
+      source: distro
+    storage:
+      osd-devices: cinder,20G
+  ceph-rbd-mirror:
+    series: bionic
+    charm: ../../../ceph-rbd-mirror
+    num_units: 1
+    options:
+      source: distro
+  ceph-mon-b:
+    charm: cs:~fnordahl/ceph-mon-rbd-mirror
+    num_units: 3
+    options:
+      expected-osd-count: 3
+      source: distro
+  ceph-osd-b:
+    charm: cs:~openstack-charmers-next/ceph-osd
+    num_units: 3
+    options:
+      source: distro
+    storage:
+      osd-devices: cinder,20G
+  ceph-rbd-mirror-b:
+    series: bionic
+    charm: ../../../ceph-rbd-mirror
+    num_units: 1
+    options:
+      source: distro
+relations:
+- - ceph-mon:osd
+  - ceph-osd:mon
+- - ceph-mon
+  - ceph-rbd-mirror:ceph-local
+- - ceph-mon
+  - ceph-rbd-mirror-b:ceph-remote
+- - ceph-mon-b:osd
+  - ceph-osd-b:mon
+- - ceph-mon-b
+  - ceph-rbd-mirror-b:ceph-local
+- - ceph-mon-b
+  - ceph-rbd-mirror:ceph-remote
