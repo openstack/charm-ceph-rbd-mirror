@@ -1,4 +1,5 @@
 includes:
+  - layer:leadership
   - layer:ceph
   - interface:ceph-rbd-mirror
   - interface:nrpe-external-master

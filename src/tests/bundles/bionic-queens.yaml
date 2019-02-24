@@ -1,5 +1,20 @@
 series: bionic
 applications:
+  mysql:
+    charm: cs:~openstack-charmers-next/percona-cluster
+    num_units: 1
+  keystone:
+    charm: cs:~openstack-charmers-next/keystone
+    num_units: 1
+  rabbitmq-server:
+    charm: cs:~openstack-charmers-next/rabbitmq-server
+    num_units: 1
+  cinder:
+    charm: cs:~openstack-charmers-next/cinder
+    num_units: 1
+  cinder-ceph:
+    charm: cs:~openstack-charmers-next/cinder-ceph
+    num_units: 0
   ceph-mon:
     charm: cs:~fnordahl/ceph-mon-rbd-mirror
     num_units: 3
@@ -39,6 +54,18 @@ applications:
     options:
       source: distro
 relations:
+- - mysql
+  - keystone
+- - mysql
+  - cinder
+- - rabbitmq-server
+  - cinder
+- - keystone
+  - cinder
+- - cinder
+  - cinder-ceph
+- - cinder-ceph
+  - ceph-mon
 - - ceph-mon:osd
   - ceph-osd:mon
 - - ceph-mon
