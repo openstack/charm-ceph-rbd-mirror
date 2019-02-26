@@ -17,6 +17,7 @@ import subprocess
 
 import charms_openstack.charm
 import charms_openstack.adapters
+import charms_openstack.plugins
 
 # import charmhelpers.core.host as ch_host
 
@@ -24,12 +25,12 @@ import charms_openstack.adapters
 class CephRBDMirrorCharmRelationAdapters(
         charms_openstack.adapters.OpenStackRelationAdapters):
     relation_adapters = {
-        'ceph_local': charms_openstack.adapters.CephRelationAdapter,
-        'ceph_remote': charms_openstack.adapters.CephRelationAdapter,
+        'ceph_local': charms_openstack.plugins.CephRelationAdapter,
+        'ceph_remote': charms_openstack.plugins.CephRelationAdapter,
     }
 
 
-class CephRBDMirrorCharm(charms_openstack.charm.CephCharm):
+class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
     # We require Ceph 12.2 Luminous or later for HA support in the Ceph
     # rbd-mirror daemon.  Luminous appears in UCA at pike.
     release = 'pike'
