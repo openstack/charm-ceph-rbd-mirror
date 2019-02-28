@@ -98,6 +98,23 @@ def configure_pools():
             if 'rbd' in attrs['applications']:
                 if not (charm_instance.mirror_pool_enabled(pool) and
                         charm_instance.mirror_pool_has_peers(pool)):
-                    # TODO(fnordahl) add rest of attrs when creating pool
-                    remote.create_pool(pool, app_name='rbd')
                     charm_instance.mirror_pool_enable(pool)
+                pg_num = attrs['parameters'].get('pg_num', None)
+                max_bytes = attrs['quota'].get('max_bytes', None)
+                max_objects = attrs['quota'].get('max_objects', None)
+                if 'erasure_code_profile' in attrs['parameters']:
+                    ec_profile = attrs['parameters'].get(
+                        'erasure_code_profile', None)
+                    remote.create_erasure_pool(pool,
+                                               erasure_profile=ec_profile,
+                                               pg_num=pg_num,
+                                               app_name='rbd',
+                                               max_bytes=max_bytes,
+                                               max_objects=max_objects)
+                else:
+                    size = attrs['parameters'].get('size', None)
+                    remote.create_replicated_pool(pool, replicas=size,
+                                                  pg_num=pg_num,
+                                                  app_name='rbd',
+                                                  max_bytes=max_bytes,
+                                                  max_objects=max_objects)

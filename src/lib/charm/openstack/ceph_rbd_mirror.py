@@ -15,11 +15,13 @@
 import socket
 import subprocess
 
+import charms.reactive as reactive
+
 import charms_openstack.charm
 import charms_openstack.adapters
 import charms_openstack.plugins
 
-# import charmhelpers.core.host as ch_host
+import charmhelpers.core as ch_core
 
 
 class CephRBDMirrorCharmRelationAdapters(
@@ -55,6 +57,21 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
         }
         super().__init__(**kwargs)
 
+    def custom_assess_status_check(self):
+        """Provide mirrored pool statistics through juju status."""
+        if (reactive.is_flag_set('config.rendered') and
+                reactive.is_flag_set('ceph-local.available') and
+                reactive.is_flag_set('ceph-remote.available')):
+            endpoint = reactive.endpoint_from_flag('ceph-local.available')
+            for pool, attrs in endpoint.pools.items():
+                if 'rbd' in attrs['applications']:
+                    status = self.mirror_pool_status(pool)
+                    ch_core.hookenv.log('DEBUG: mirror_pool_status({}) = "{}"'
+                                        .format(pool, status),
+                                        level=ch_core.hookenv.INFO)
+            return 'active', 'Custom'
+        return None, None
+
     def _mirror_pool_info(self, pool):
         output = subprocess.check_output(['rbd', '--id', self.ceph_id,
                                           'mirror', 'pool', 'info', pool],
@@ -74,7 +91,7 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
         result = {}
         for line in output.splitlines():
             vp = line.split(':')
-            result.update(vp[0], vp[1].lstrip().rstrip())
+            result.update({vp[0]: vp[1].lstrip().rstrip()})
         return result
 
     def mirror_pool_enable(self, pool):
