@@ -45,38 +45,47 @@ class TestCephRBDMirrorCharm(Helper):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')
         self.patch_object(ceph_rbd_mirror.subprocess, 'check_output')
         self.gethostname.return_value = 'ahostname'
+        self.check_output.return_value = '{}'
         crmc = ceph_rbd_mirror.CephRBDMirrorCharm()
         crmc._mirror_pool_info('apool')
         self.check_output.assert_called_once_with(
             ['rbd', '--id', 'rbd-mirror.ahostname', 'mirror', 'pool', 'info',
-             'apool'], universal_newlines=True)
+             '--format', 'json', 'apool'], universal_newlines=True)
 
     def test_mirror_pool_enabled(self):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')
         crmc = ceph_rbd_mirror.CephRBDMirrorCharm()
         _mirror_pool_info = mock.MagicMock()
-        _mirror_pool_info.return_value = (
-            'Mode: pool\n'
-            'Peers: \n'
-            '  UUID                                 NAME   CLIENT'
-            '                            \n')
+        _mirror_pool_info.return_value = {
+            'mode': 'pool',
+            'peers': [{
+                'uuid': '0e4dfe58-93fc-44f8-8c74-7e700f950118',
+                'cluster_name': 'remote',
+                'client_name':
+                    'client.rbd-mirror.juju-c50b1a-zaza-4ce96f1e7e43-12'}]
+        }
         crmc._mirror_pool_info = _mirror_pool_info
         self.assertTrue(crmc.mirror_pool_enabled('apool'))
         _mirror_pool_info.assert_called_once_with('apool')
-        _mirror_pool_info.return_value = 'Mode: disabled\n'
+        _mirror_pool_info.return_value = {'mode': 'disabled'}
         self.assertFalse(crmc.mirror_pool_enabled('apool'))
 
     def test_mirror_pool_has_peers(self):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')
         crmc = ceph_rbd_mirror.CephRBDMirrorCharm()
         _mirror_pool_info = mock.MagicMock()
-        _mirror_pool_info.return_value = (
-            'Mode: pool\n'
-            'Peers: \n'
-            '  UUID                                 NAME   CLIENT'
-            '                            \n')
+        _mirror_pool_info.return_value = {
+            'mode': 'pool',
+            'peers': [{
+                'uuid': '0e4dfe58-93fc-44f8-8c74-7e700f950118',
+                'cluster_name': 'remote',
+                'client_name':
+                    'client.rbd-mirror.juju-c50b1a-zaza-4ce96f1e7e43-12'}]
+        }
         crmc._mirror_pool_info = _mirror_pool_info
         self.assertTrue(crmc.mirror_pool_has_peers('apool'))
         _mirror_pool_info.assert_called_once_with('apool')
-        _mirror_pool_info.return_value = 'Mode: pool\nPeers: none\n'
+        _mirror_pool_info.return_value = {
+            'mode': 'pool',
+            'peers': []}
         self.assertFalse(crmc.mirror_pool_has_peers('apool'))

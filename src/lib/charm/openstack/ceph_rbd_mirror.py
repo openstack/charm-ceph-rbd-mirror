@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import socket
 import subprocess
 
@@ -73,25 +74,24 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
 
     def _mirror_pool_info(self, pool):
         output = subprocess.check_output(['rbd', '--id', self.ceph_id,
-                                          'mirror', 'pool', 'info', pool],
+                                          'mirror', 'pool', 'info', '--format',
+                                          'json', pool],
                                          universal_newlines=True)
-        return output
+        return json.loads(output)
 
     def mirror_pool_enabled(self, pool):
-        return 'Mode: pool' in self._mirror_pool_info(pool)
+        return self._mirror_pool_info(pool).get('mode', None) == 'pool'
 
     def mirror_pool_has_peers(self, pool):
-        return 'Peers: none' not in self._mirror_pool_info(pool)
+        return len(self._mirror_pool_info(pool).get('peers', [])) > 0
 
     def mirror_pool_status(self, pool):
         output = subprocess.check_output(['rbd', '--id', self.ceph_id,
-                                          'mirror', 'pool', 'status', pool],
+                                          'mirror', 'pool', 'status',
+                                          '--format', 'json', '--verbose',
+                                          pool],
                                          universal_newlines=True)
-        result = {}
-        for line in output.splitlines():
-            vp = line.split(':')
-            result.update({vp[0]: vp[1].lstrip().rstrip()})
-        return result
+        return json.loads(output)
 
     def mirror_pool_enable(self, pool):
         base_cmd = ['rbd', '--id', self.ceph_id, 'mirror', 'pool']
