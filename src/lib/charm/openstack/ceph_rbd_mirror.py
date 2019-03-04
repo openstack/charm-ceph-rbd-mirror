@@ -69,7 +69,6 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                     ch_core.hookenv.log('DEBUG: mirror_pool_status({}) = "{}"'
                                         .format(pool, status),
                                         level=ch_core.hookenv.INFO)
-            return 'active', 'Custom'
         return None, None
 
     def _mirror_pool_info(self, pool):

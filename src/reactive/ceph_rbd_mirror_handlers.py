@@ -34,12 +34,12 @@ charm.use_defaults(
 def request_keys():
     with charm.provide_charm_instance() as charm_instance:
         for flag in ('ceph-local.connected', 'ceph-remote.connected'):
-            endpoint = reactive.relations.endpoint_from_flag(flag)
+            endpoint = reactive.endpoint_from_flag(flag)
             ch_core.hookenv.log('Ceph endpoint "{}" connected, requesting key'
                                 .format(endpoint.endpoint_name),
                                 level=ch_core.hookenv.INFO)
             endpoint.request_key()
-            charm_instance.assess_status()
+        charm_instance.assess_status()
 
 
 @reactive.when('config.changed')
@@ -48,8 +48,8 @@ def request_keys():
 def config_changed():
     with charm.provide_charm_instance() as charm_instance:
         charm_instance.upgrade_if_available([
-            reactive.relations.endpoint_from_flag('ceph-local.available'),
-            reactive.relations.endpoint_from_flag('ceph-remote.available'),
+            reactive.endpoint_from_flag('ceph-local.available'),
+            reactive.endpoint_from_flag('ceph-remote.available'),
         ])
         charm_instance.assess_status()
 
@@ -60,6 +60,7 @@ def disable_services():
         for service in charm_instance.services:
             ch_core.host.service('disable', service)
             ch_core.host.service('stop', service)
+        charm_instance.assess_status()
 
 
 @reactive.when('ceph-local.available')
@@ -78,10 +79,9 @@ def render_stuff(*args):
             charm_instance.configure_ceph_keyring(endpoint,
                                                   cluster_name=cluster_name)
         charm_instance.render_with_interfaces(args)
-        with charm.provide_charm_instance() as charm_instance:
-            for service in charm_instance.services:
-                ch_core.host.service('enable', service)
-                ch_core.host.service('start', service)
+        for service in charm_instance.services:
+            ch_core.host.service('enable', service)
+            ch_core.host.service('start', service)
         reactive.set_flag('config.rendered')
         charm_instance.assess_status()
 

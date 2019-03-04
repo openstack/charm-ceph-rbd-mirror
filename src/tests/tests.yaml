@@ -2,13 +2,8 @@ charm_name: ceph-rbd-mirror
 smoke_bundles:
 - bionic-queens
 gate_bundles:
-- xenial-pike
-- xenial-queens
 - bionic-queens
-- bionic-rocky
-- cosmic-rocky
-dev_bundles:
-- disco-stein
+- bionic-queens-e2e
 configure:
 - zaza.charm_tests.noop.setup.basic_setup
 tests:
