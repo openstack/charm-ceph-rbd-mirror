@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import json
 import socket
 import subprocess
@@ -64,12 +65,39 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                 reactive.is_flag_set('ceph-local.available') and
                 reactive.is_flag_set('ceph-remote.available')):
             endpoint = reactive.endpoint_from_flag('ceph-local.available')
-            for pool, attrs in endpoint.pools.items():
-                if 'rbd' in attrs['applications']:
-                    status = self.mirror_pool_status(pool)
-                    ch_core.hookenv.log('DEBUG: mirror_pool_status({}) = "{}"'
-                                        .format(pool, status),
-                                        level=ch_core.hookenv.INFO)
+            stats = self.mirror_pools_summary(
+                (pool for pool, attrs in endpoint.pools.items()
+                    if 'rbd' in attrs['applications']))
+            ch_core.hookenv.log('mirror_pools_summary = "{}"'
+                                .format(stats),
+                                level=ch_core.hookenv.DEBUG)
+            status = 'active'
+            pool_msg = ''
+            image_msg = ''
+            for health, count in stats['pool_health'].items():
+                if not pool_msg:
+                    pool_msg = 'Pools '
+                pool_msg += '{} ({}) '.format(health, count)
+                if health != 'OK':
+                    status = 'blocked'
+            for state, count in stats['image_states'].items():
+                if not image_msg:
+                    image_msg = 'Images '
+                if state == 'stopped':
+                    state_name = 'Primary'
+                elif state == 'replaying':
+                    state_name = 'Secondary'
+                else:
+                    state_name = state
+                image_msg += '{} ({}) '.format(state_name, count)
+            msg = ''
+            if pool_msg:
+                msg = 'Unit is ready ({})'.format(
+                    pool_msg + image_msg.rstrip())
+            else:
+                status = 'waiting'
+                msg = 'Waiting for pools to be created'
+            return status, msg
         return None, None
 
     def _mirror_pool_info(self, pool):
@@ -92,6 +120,17 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                                           pool],
                                          universal_newlines=True)
         return json.loads(output)
+
+    def mirror_pools_summary(self, pools):
+        stats = {}
+        stats['pool_health'] = collections.defaultdict(int)
+        stats['image_states'] = collections.defaultdict(int)
+        for pool in pools:
+            pool_stat = self.mirror_pool_status(pool)
+            stats['pool_health'][pool_stat['summary']['health']] += 1
+            for state, value in pool_stat['summary']['states'].items():
+                stats['image_states'][state] += value
+        return stats
 
     def mirror_pool_enable(self, pool):
         base_cmd = ['rbd', '--id', self.ceph_id, 'mirror', 'pool']

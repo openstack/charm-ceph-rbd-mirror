@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import mock
 
 import charms_openstack.test_utils as test_utils
@@ -37,9 +38,31 @@ class TestCephRBDMirrorCharm(Helper):
         self.is_flag_set.return_value = True
         self.patch_object(ceph_rbd_mirror.reactive, 'endpoint_from_flag')
         self.assertEqual(crmc.custom_assess_status_check(),
-                         (None, None))
+                         ('waiting', 'Waiting for pools to be created'))
         self.endpoint_from_flag.assert_called_once_with(
             'ceph-local.available')
+        crmc.mirror_pools_summary = mock.MagicMock()
+        crmc.mirror_pools_summary.return_value = collections.OrderedDict({
+            'pool_health': collections.OrderedDict(
+                {'OK': 1, 'WARN': 1, 'ERROR': 1}),
+            'image_states': collections.OrderedDict(
+                {'stopped': 2, 'replaying': 2}),
+        })
+        result = crmc.custom_assess_status_check()
+        self.assertTrue('blocked' in result[0])
+        # the order of which the statuses appear in the string is undefined
+        self.assertTrue('OK (1)' in result[1])
+        self.assertTrue('WARN (1)' in result[1])
+        self.assertTrue('ERROR (1)' in result[1])
+        self.assertTrue('Primary (2)' in result[1])
+        self.assertTrue('Secondary (2)' in result[1])
+        crmc.mirror_pools_summary.return_value = collections.OrderedDict({
+            'pool_health': collections.OrderedDict({'OK': 1}),
+            'image_states': collections.OrderedDict({'stopped': 2}),
+        })
+        self.assertEqual(crmc.custom_assess_status_check(),
+                         ('active', 'Unit is ready (Pools OK (1) '
+                                    'Images Primary (2))'))
 
     def test__mirror_pool_info(self):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')
