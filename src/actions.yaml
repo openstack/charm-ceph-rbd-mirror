@@ -1,0 +1,18 @@
+demote:
+  description: |
+    Demote all primary images within all pools to non-primary.
+  params:
+    force:
+      type: boolean
+promote:
+  description: |
+    Promote all non-primary images within all pools to primary.
+  params:
+    force:
+      type: boolean
+refresh-pools:
+  description: |
+    \
+        Refresh list of pools from local and remote Ceph endpoint.
+        As a side effect, mirroring will be configured for any manually created
+        pools that the charm currently does not know about.

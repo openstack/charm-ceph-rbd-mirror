@@ -45,6 +45,12 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
                     'ceph-local.available',
                     'ceph-remote.available',
                 ),
+                'refresh_pools': (
+                    'leadership.is_leader',
+                    'refresh.pools',
+                    'ceph-local.available',
+                    'ceph-remote.available',
+                ),
             },
             'when_all': {
                 'request_keys': (
@@ -139,6 +145,21 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
             mock.call('start', 'aservice'),
         ])
         self.crm_charm.assess_status.assert_called_once_with()
+
+    def test_refresh_pools(self):
+        self.patch_object(handlers.reactive, 'endpoint_from_name')
+        self.patch_object(handlers.reactive, 'clear_flag')
+        endpoint_local = mock.MagicMock()
+        endpoint_remote = mock.MagicMock()
+        self.endpoint_from_name.side_effect = [endpoint_local, endpoint_remote]
+        handlers.refresh_pools()
+        self.endpoint_from_name.assert_has_calls([
+            mock.call('ceph-local'),
+            mock.call('ceph-remote'),
+        ])
+        endpoint_local.refresh_pools.assert_called_once_with()
+        endpoint_remote.refresh_pools.assert_called_once_with()
+        self.clear_flag.assert_called_once_with('refresh.pools')
 
     def test_configure_pools(self):
         self.patch_object(handlers.reactive, 'endpoint_from_flag')

@@ -87,6 +87,17 @@ def render_stuff(*args):
 
 
 @reactive.when('leadership.is_leader')
+@reactive.when('refresh.pools')
+@reactive.when('ceph-local.available')
+@reactive.when('ceph-remote.available')
+def refresh_pools():
+    for endpoint in 'ceph-local', 'ceph-remote':
+        endpoint = reactive.endpoint_from_name(endpoint)
+        endpoint.refresh_pools()
+    reactive.clear_flag('refresh.pools')
+
+
+@reactive.when('leadership.is_leader')
 @reactive.when('config.rendered')
 @reactive.when('ceph-local.available')
 @reactive.when('ceph-remote.available')
