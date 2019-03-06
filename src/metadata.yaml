@@ -22,6 +22,9 @@ series:
   - xenial
   - bionic
   - cosmic
+extra-bindings:
+  public:
+  cluster:
 subordinate: false
 provides:
   nrpe-external-master:
