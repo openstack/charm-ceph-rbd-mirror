@@ -2,9 +2,22 @@ charm_name: ceph-rbd-mirror
 smoke_bundles:
 - bionic-queens
 gate_bundles:
+- xenial-pike
+- xenial-queens
 - bionic-queens
+- bionic-rocky
+- cosmic-rocky
+comment: |
+  Hold ``disco-stein`` bundle until all dependend charms have disco support.
+  The e2e bundles are useful for development but adds no additional value to
+  the functional tests.
+dev_bundles:
+- disco-stein
 - bionic-queens-e2e
+- bionic-queens-e2e-lxd
 configure:
-- zaza.charm_tests.noop.setup.basic_setup
+- zaza.charm_tests.glance.setup.add_lts_image
 tests:
-- zaza.charm_tests.noop.tests.NoopTest
+- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
+- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorControlledFailoverTest
+- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest

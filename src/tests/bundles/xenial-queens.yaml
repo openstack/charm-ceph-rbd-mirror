@@ -1,26 +1,27 @@
-series: bionic
+series: xenial
 applications:
   mysql:
     charm: cs:~openstack-charmers-next/percona-cluster
     num_units: 1
     options:
-      source: distro
+      source: cloud:xenial-queens
   keystone:
     charm: cs:~openstack-charmers-next/keystone
     num_units: 1
     options:
-      openstack-origin: distro
+      openstack-origin: cloud:xenial-queens
   rabbitmq-server:
     charm: cs:~openstack-charmers-next/rabbitmq-server
     num_units: 1
     options:
-      source: distro
+      source: cloud:xenial-queens
   cinder:
     charm: cs:~openstack-charmers-next/cinder
     num_units: 1
     options:
       block-device: None
       glance-api-version: 2
+      openstack-origin: cloud:xenial-queens
   cinder-ceph:
     charm: cs:~openstack-charmers-next/cinder-ceph
     num_units: 0
@@ -28,47 +29,47 @@ applications:
     charm: cs:~openstack-charmers-next/glance
     num_units: 1
     options:
-      openstack-origin: distro
+      openstack-origin: cloud:xenial-queens
   ceph-mon:
     charm: cs:~openstack-charmers-next/ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
-      source: distro
+      source: cloud:xenial-queens
   ceph-osd:
     charm: cs:~openstack-charmers-next/ceph-osd
     num_units: 3
     options:
-      source: distro
+      source: cloud:xenial-queens
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
   ceph-rbd-mirror:
-    series: bionic
+    series: xenial
     charm: ../../../ceph-rbd-mirror
     num_units: 1
     options:
-      source: distro
+      source: cloud:xenial-queens
   ceph-mon-b:
     charm: cs:~openstack-charmers-next/ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
-      source: distro
+      source: cloud:xenial-queens
   ceph-osd-b:
     charm: cs:~openstack-charmers-next/ceph-osd
     num_units: 3
     options:
-      source: distro
+      source: cloud:xenial-queens
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
   ceph-rbd-mirror-b:
-    series: bionic
+    series: xenial
     charm: ../../../ceph-rbd-mirror
     num_units: 1
     options:
-      source: distro
+      source: cloud:xenial-queens
 relations:
 - - mysql
   - keystone
