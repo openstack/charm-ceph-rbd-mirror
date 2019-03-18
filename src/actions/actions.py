@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import subprocess
 import sys
@@ -45,16 +46,32 @@ def rbd_mirror_action(args):
         ceph_local = reactive.endpoint_from_name('ceph-local')
         pools = (pool for pool, attrs in ceph_local.pools.items()
                  if 'rbd' in attrs['applications'])
-        result = []
+        result = {}
         cmd = ['rbd', '--id', charm.ceph_id, 'mirror', 'pool', action_name]
         if ch_core.hookenv.action_get('force'):
             cmd += ['--force']
+        if ch_core.hookenv.action_get('verbose'):
+            cmd += ['--verbose']
+        output_format = ch_core.hookenv.action_get('format')
+        if output_format:
+            cmd += ['--format', output_format]
         for pool in pools:
             output = subprocess.check_output(cmd + [pool],
                                              stderr=subprocess.STDOUT,
                                              universal_newlines=True)
-            result.append('{}: {}'.format(pool, output.rstrip()))
-        ch_core.hookenv.action_set({'output': '\n'.join(result)})
+            if output_format == 'json':
+                result[pool] = json.loads(output)
+            else:
+                result[pool] = output.rstrip()
+        if output_format == 'json':
+            ch_core.hookenv.action_set({'output': json.dumps(result)})
+        else:
+            output_str = ''
+            for pool, output in result.items():
+                if output_str:
+                    output_str += '\n'
+                output_str += '{}: {}'.format(pool, output)
+            ch_core.hookenv.action_set({'output': output_str})
 
 
 def refresh_pools(args):
@@ -83,6 +100,7 @@ ACTIONS = {
     'demote': rbd_mirror_action,
     'promote': rbd_mirror_action,
     'refresh-pools': refresh_pools,
+    'status': rbd_mirror_action,
 }
 
 

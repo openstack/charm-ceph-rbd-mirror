@@ -16,3 +16,16 @@ refresh-pools:
         Refresh list of pools from local and remote Ceph endpoint.
         As a side effect, mirroring will be configured for any manually created
         pools that the charm currently does not know about.
+status:
+  description: |
+    Get mirror pool status
+  params:
+    verbose:
+      type: boolean
+    format:
+      type: string
+      default: plain
+      enum:
+        - plain
+        - json
+        - xml

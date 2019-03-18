@@ -51,7 +51,11 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
         self.check_output.return_value = 'Promoted 0 mirrored images\n'
         actions.rbd_mirror_action(['promote'])
         self.endpoint_from_name.assert_called_once_with('ceph-local')
-        self.action_get.assert_called_once_with('force')
+        self.action_get.assert_has_calls([
+            mock.call('force'),
+            mock.call('verbose'),
+            mock.call('format'),
+        ])
         self.check_output.assert_has_calls([
             mock.call(['rbd', '--id', 'acephid', 'mirror', 'pool', 'promote',
                        'apool'],
@@ -65,22 +69,28 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
         # the order the pools has in the output string is undefined
         self.action_set.assert_called_once_with(
             {'output': mock.ANY})
-        for entry in self.action_set.call_args[0][0]['output'].split('\n'):
-            assert (entry == 'apool: Promoted 0 mirrored images' or
-                    entry == 'bpool: Promoted 0 mirrored images')
-        self.action_get.return_value = True
+        self.assertEquals(
+            sorted(self.action_set.call_args[0][0]['output'].split('\n')),
+            ['apool: Promoted 0 mirrored images',
+             'bpool: Promoted 0 mirrored images'])
+        self.action_get.side_effect = [True, True, False]
         self.check_output.reset_mock()
         actions.rbd_mirror_action(['promote'])
         self.check_output.assert_has_calls([
             mock.call(['rbd', '--id', 'acephid', 'mirror', 'pool', 'promote',
-                       '--force', 'apool'],
+                       '--force', '--verbose', 'apool'],
                       stderr=actions.subprocess.STDOUT,
                       universal_newlines=True),
             mock.call(['rbd', '--id', 'acephid', 'mirror', 'pool', 'promote',
-                       '--force', 'bpool'],
+                       '--force', '--verbose', 'bpool'],
                       stderr=actions.subprocess.STDOUT,
                       universal_newlines=True),
         ], any_order=True)
+        self.action_get.assert_has_calls([
+            mock.call('force'),
+            mock.call('verbose'),
+            mock.call('format'),
+        ])
 
     def test_refresh_pools(self):
         self.patch_object(actions.reactive, 'is_flag_set')
