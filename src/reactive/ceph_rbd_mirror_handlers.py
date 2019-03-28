@@ -68,6 +68,11 @@ def disable_services():
 def render_stuff(*args):
     with charm.provide_charm_instance() as charm_instance:
         for endpoint in args:
+            if not endpoint.key:
+                ch_core.hookenv.log('Ceph endpoint "{}" flagged available yet '
+                                    'no key.  Relation is probably departing.',
+                                    level=ch_core.hookenv.INFO)
+                return
             ch_core.hookenv.log('Ceph endpoint "{}" available, configuring '
                                 'keyring'.format(endpoint.endpoint_name),
                                 level=ch_core.hookenv.INFO)
