@@ -14,6 +14,7 @@
 
 import collections
 import mock
+import subprocess
 
 import charms_openstack.test_utils as test_utils
 
@@ -63,6 +64,9 @@ class TestCephRBDMirrorCharm(Helper):
         self.assertEqual(crmc.custom_assess_status_check(),
                          ('active', 'Unit is ready (Pools OK (1) '
                                     'Images Primary (2))'))
+        crmc.mirror_pools_summary.side_effect = subprocess.CalledProcessError(
+            42, [])
+        self.assertEqual(crmc.custom_assess_status_check(), (None, None))
 
     def test__mirror_pool_info(self):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')

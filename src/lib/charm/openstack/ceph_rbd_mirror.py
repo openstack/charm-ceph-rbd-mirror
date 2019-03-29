@@ -79,8 +79,13 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                 reactive.is_flag_set('ceph-local.available') and
                 reactive.is_flag_set('ceph-remote.available')):
             endpoint = reactive.endpoint_from_flag('ceph-local.available')
-            stats = self.mirror_pools_summary(
-                self.eligible_pools(endpoint.pools))
+            try:
+                stats = self.mirror_pools_summary(
+                    self.eligible_pools(endpoint.pools))
+            except subprocess.CalledProcessError as e:
+                ch_core.hookenv.log('Unable to retrieve mirror pool status: '
+                                    '"{}"'.format(e))
+                return None, None
             ch_core.hookenv.log('mirror_pools_summary = "{}"'
                                 .format(stats),
                                 level=ch_core.hookenv.DEBUG)
