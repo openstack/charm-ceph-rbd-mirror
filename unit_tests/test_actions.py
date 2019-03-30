@@ -46,11 +46,13 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
             {'apool': {'applications': {'rbd': {}}},
              'bpool': {'applications': {'rbd': {}}}})
         self.endpoint_from_name.return_value = endpoint
+        self.crm_charm.eligible_pools.return_value = endpoint.pools
         self.crm_charm.ceph_id = 'acephid'
         self.action_get.return_value = False
         self.check_output.return_value = 'Promoted 0 mirrored images\n'
         actions.rbd_mirror_action(['promote'])
         self.endpoint_from_name.assert_called_once_with('ceph-local')
+        self.crm_charm.eligible_pools.assert_called_once_with(endpoint.pools)
         self.action_get.assert_has_calls([
             mock.call('force'),
             mock.call('verbose'),

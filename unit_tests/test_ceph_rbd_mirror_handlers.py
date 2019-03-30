@@ -180,12 +180,15 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         endpoint_remote.endpoint_name = 'ceph-remote'
         self.endpoint_from_flag.side_effect = [endpoint_local,
                                                endpoint_remote]
+        self.crm_charm.eligible_pools.return_value = endpoint_local.pools
         self.crm_charm.mirror_pool_enabled.return_value = False
         handlers.configure_pools()
         self.endpoint_from_flag.assert_has_calls([
             mock.call('ceph-local.available'),
             mock.call('ceph-remote.available'),
         ])
+        self.crm_charm.eligible_pools.assert_called_once_with(
+            endpoint_local.pools)
         self.crm_charm.mirror_pool_enabled.assert_called_once_with(
             'cinder-ceph')
         self.crm_charm.mirror_pool_enable.assert_called_once_with(
@@ -216,6 +219,7 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         self.endpoint_from_flag.side_effect = [endpoint_local,
                                                endpoint_remote]
         endpoint_remote.create_replicated_pool.reset_mock()
+        self.crm_charm.eligible_pools.return_value = endpoint_local.pools
         handlers.configure_pools()
         endpoint_remote.create_erasure_pool.assert_called_once_with(
             'cinder-ceph', erasure_profile='prof', pg_num=42, app_name='rbd',

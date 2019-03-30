@@ -59,6 +59,20 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
         }
         super().__init__(**kwargs)
 
+    def eligible_pools(self, pools):
+        """Filter eligible pools.
+
+        :param pools: Dictionary with detailed pool information as provided
+                      over the ``ceph-rbd-mirror`` interface provided by the
+                      ``ceph-mon`` charm.
+        :type pools: dict
+        :returns: Dictionary with detailed pool information for pools eligible
+                  for mirroring.
+        :rtype: dict
+        """
+        return {pool: attrs for pool, attrs in pools.items()
+                if 'rbd' in attrs['applications']}
+
     def custom_assess_status_check(self):
         """Provide mirrored pool statistics through juju status."""
         if (reactive.is_flag_set('config.rendered') and
@@ -66,8 +80,7 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                 reactive.is_flag_set('ceph-remote.available')):
             endpoint = reactive.endpoint_from_flag('ceph-local.available')
             stats = self.mirror_pools_summary(
-                (pool for pool, attrs in endpoint.pools.items()
-                    if 'rbd' in attrs['applications']))
+                self.eligible_pools(endpoint.pools))
             ch_core.hookenv.log('mirror_pools_summary = "{}"'
                                 .format(stats),
                                 level=ch_core.hookenv.DEBUG)

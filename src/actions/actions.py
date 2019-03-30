@@ -44,8 +44,7 @@ def rbd_mirror_action(args):
     action_name = os.path.basename(args[0])
     with charms_openstack.charm.provide_charm_instance() as charm:
         ceph_local = reactive.endpoint_from_name('ceph-local')
-        pools = (pool for pool, attrs in ceph_local.pools.items()
-                 if 'rbd' in attrs['applications'])
+        pools = charm.eligible_pools(ceph_local.pools)
         result = {}
         cmd = ['rbd', '--id', charm.ceph_id, 'mirror', 'pool', action_name]
         if ch_core.hookenv.action_get('force'):
