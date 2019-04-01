@@ -16,6 +16,18 @@ refresh-pools:
         Refresh list of pools from local and remote Ceph endpoint.
         As a side effect, mirroring will be configured for any manually created
         pools that the charm currently does not know about.
+resync-pools:
+  description: |
+    \
+        USE WITH CAUTION - Force image resync for all images in pools on local
+                           Ceph endpoint.
+  params:
+    i-really-mean-it:
+      type: boolean
+      description: |
+        This must be set to true to perform the action
+  required:
+    - i-really-mean-it
 status:
   description: |
     Get mirror pool status

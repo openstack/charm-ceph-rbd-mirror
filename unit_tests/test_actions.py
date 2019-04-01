@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import collections
+import json
 import mock
 import sys
 
@@ -110,6 +111,31 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
         self.set_flag.assert_called_once_with('refresh.pools')
         self._KV.flush.assert_called_once_with()
         self.main.assert_called_once_with()
+
+    def test_resync_pools(self):
+        self.patch_object(actions.reactive, 'endpoint_from_name')
+        self.patch_object(actions.ch_core.hookenv, 'action_get')
+        self.patch_object(actions.subprocess, 'check_output')
+        self.patch_object(actions.ch_core.hookenv, 'action_set')
+        endpoint = mock.MagicMock()
+        endpoint.pools = collections.OrderedDict(
+            {'apool': {'applications': {'rbd': {}}}})
+        self.endpoint_from_name.return_value = endpoint
+        self.crm_charm.eligible_pools.return_value = endpoint.pools
+        self.crm_charm.ceph_id = 'acephid'
+        self.action_get.return_value = False
+        actions.resync_pools([])
+        self.assertFalse(self.check_output.called)
+        self.assertFalse(self.action_set.called)
+        self.action_get.return_value = True
+        self.check_output.side_effect = [
+            json.dumps(['imagea']),
+            'resync flagged for imagea\n',
+        ]
+        actions.resync_pools([])
+        self.assertEquals(
+            sorted(self.action_set.call_args[0][0]['output'].split('\n')),
+            ['apool/imagea: resync flagged for imagea'])
 
     def test_main(self):
         self.patch_object(actions, 'ACTIONS')

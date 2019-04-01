@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import json
 import os
 import subprocess
@@ -95,10 +96,41 @@ def refresh_pools(args):
     return reactive.main()
 
 
+def resync_pools(args):
+    """Force image resync on pools in local Ceph endpoint."""
+    if not ch_core.hookenv.action_get('i-really-mean-it'):
+        ch_core.hookenv.action_fail('Required parameter not set')
+        return
+    with charms_openstack.charm.provide_charm_instance() as charm:
+        ceph_local = reactive.endpoint_from_name('ceph-local')
+        pools = charm.eligible_pools(ceph_local.pools)
+        result = collections.defaultdict(dict)
+        for pool in pools:
+            # list images in pool
+            output = subprocess.check_output(
+                ['rbd', '--id', charm.ceph_id, '--format', 'json',
+                 '-p', pool, 'ls'], universal_newlines=True)
+            images = json.loads(output)
+            for image in images:
+                output = subprocess.check_output(
+                    ['rbd', '--id', charm.ceph_id, 'mirror', 'image', 'resync',
+                     '{}/{}'.format(pool, image)], universal_newlines=True)
+                result[pool][image] = output.rstrip()
+        output_str = ''
+        for pool in result:
+            for image in result[pool]:
+                if output_str:
+                    output_str += '\n'
+                output_str += '{}/{}: {}'.format(pool, image,
+                                                 result[pool][image])
+        ch_core.hookenv.action_set({'output': output_str})
+
+
 ACTIONS = {
     'demote': rbd_mirror_action,
     'promote': rbd_mirror_action,
     'refresh-pools': refresh_pools,
+    'resync-pools': resync_pools,
     'status': rbd_mirror_action,
 }
 
