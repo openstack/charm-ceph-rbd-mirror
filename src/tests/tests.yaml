@@ -6,13 +6,13 @@ gate_bundles:
 - xenial-queens
 - bionic-queens
 - bionic-rocky
+- bionic-stein
 - cosmic-rocky
+- disco-stein
 comment: |
-  Hold ``disco-stein`` bundle until all dependend charms have disco support.
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
 dev_bundles:
-- disco-stein
 - bionic-queens-e2e
 - bionic-queens-e2e-lxd
 configure:
