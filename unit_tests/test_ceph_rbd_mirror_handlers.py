@@ -139,8 +139,8 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         endpoint_local.key = 'akey'
         handlers.render_stuff(endpoint_local, endpoint_remote)
         self.crm_charm.configure_ceph_keyring.assert_has_calls([
-            mock.call(endpoint_local, cluster_name=None),
-            mock.call(endpoint_remote, cluster_name='remote'),
+            mock.call(endpoint_local.key, cluster_name=None),
+            mock.call(endpoint_remote.key, cluster_name='remote'),
         ])
         self.crm_charm.render_with_interfaces.assert_called_once_with(
             (endpoint_local, endpoint_remote))

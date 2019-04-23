@@ -81,7 +81,7 @@ def render_stuff(*args):
 
             cluster_name = (
                 'remote') if endpoint.endpoint_name == 'ceph-remote' else None
-            charm_instance.configure_ceph_keyring(endpoint,
+            charm_instance.configure_ceph_keyring(endpoint.key,
                                                   cluster_name=cluster_name)
         charm_instance.render_with_interfaces(args)
         for service in charm_instance.services:
