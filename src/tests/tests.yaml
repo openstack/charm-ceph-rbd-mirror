@@ -16,8 +16,8 @@ dev_bundles:
 - bionic-queens-e2e
 - bionic-queens-e2e-lxd
 configure:
-- zaza.charm_tests.glance.setup.add_lts_image
+- zaza.openstack.charm_tests.glance.setup.add_lts_image
 tests:
-- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
-- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorControlledFailoverTest
-- zaza.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest
+- zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
+- zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorControlledFailoverTest
+- zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest
