@@ -1,14 +1,13 @@
 charm_name: ceph-rbd-mirror
 smoke_bundles:
-- bionic-queens
-gate_bundles:
-- xenial-pike
-- xenial-queens
-- bionic-queens
-- bionic-rocky
 - bionic-stein
-- cosmic-rocky
+gate_bundles:
 - disco-stein
+- bionic-stein
+- bionic-rocky
+- bionic-queens
+- xenial-queens
+- xenial-pike
 comment: |
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
