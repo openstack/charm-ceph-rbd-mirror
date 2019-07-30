@@ -47,7 +47,7 @@ This addresses both High Availability and performance concerns.  You can
 make use of this feature by increasing the number of ``ceph-rbd-mirror`` units
 in your deployment.
 
-    The charm is written for Two-way Replication, which give you the ability to
+    The charm is written for Two-way Replication, which gives you the ability to
     fail over and fall back to/from a secondary site.
 
     Ceph does have support for mirroring to any number of slave clusters but
@@ -59,6 +59,12 @@ Mirror daemon about network configuration by binding the ``public`` and
 
 The RBD Mirror daemon will use the network associated with the ``cluster``
 endpoint for mirroring traffic when available.
+
+For more information on charms and RBD Mirroring see the [Ceph RBD Mirroring][ceph-rbd-mirroring] section of the
+[OpenStack Charms Deployment Guide][charms-deploy-guide].
+
+[ceph-rbd-mirroring]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-ceph-rbd-mirror.html
+[charms-deploy-guide]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/index.html
 
 # Deployment
 
