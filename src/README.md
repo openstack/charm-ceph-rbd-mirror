@@ -1,151 +1,194 @@
 # Overview
 
-The ``ceph-rbd-mirror`` charm supports deployment of the Ceph RBD Mirror daemon
-and helps automate remote creation and configuration of mirroring for Ceph
-pools used to host RBD images.
+The `ceph-rbd-mirror` charm deploys the Ceph `rbd-mirror` daemon and helps
+automate remote creation and configuration of mirroring for Ceph pools used for
+hosting RBD images. Actions for operator driven failover and fallback of the
+RBD image pools are also provided.
 
-Actions for operator driven failover and fallback for the pools used for RBD
-images is also provided.
+> **Note**: The `ceph-rbd-mirror` charm addresses only one specific element in
+  datacentre redundancy. Refer to [Ceph RADOS Gateway Multisite Replication][ceph-multisite-replication]
+  and other work to arrive at a complete solution.
 
-    Data center redundancy is a large topic and this work addresses a very
-    specific piece in the puzzle related to Ceph RBD images.  You need to
-    combine this with `Ceph RADOS Gateway Multisite replication`_ and other
-    work to get a complete solution.
+For more information on charms and RBD mirroring see the [Ceph RBD Mirroring][ceph-rbd-mirroring]
+appendix in the [OpenStack Charms Deployment Guide][charms-deploy-guide].
 
-.. _Ceph RADOS Gateway Multisite replication: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-rgw-multisite.html
+# Functionality
 
-This is supported both for multiple distinct Ceph clusters within a single Juju
-model and between different models with help from cross-model relations.
+The charm has the following major features:
 
-When the charm is related to a local and a remote Ceph cluster it will
-automatically create pools eligible for mirroring on the remote cluster and
-enable mirroring.
+- Support for a maximum of two Ceph clusters. The clusters may reside within a
+  single model or be contained within two separate models.
 
-Eligible pools are selected on the basis of Ceph pool tagging and all pools
-with the application ``rbd`` enabled on them will be selected.
+- Specifically written for two-way replication. This provides the ability to
+  fail over and fall back to/from a single secondary site. Ceph does have
+  support for mirroring to any number of clusters but the charm does not
+  support this.
 
-    As of the 19.04 charm release charms will automatically have newly created
-    pools for use with RBD tagged with the ``rbd`` tag.
+- Automatically creates and configures (for mirroring) pools in the remote
+  cluster based on any pools in the local cluster that are labelled with the
+  'rbd' tag.
 
-    Only mirroring of whole pools is supported by the charm.
+- Mirroring of whole pools only. Ceph itself has support for the mirroring of
+  individual images but the charm does not support this.
 
-A prerequisite for RBD Mirroring is that every RBD image within each pool is
-created with the ``journaling`` and ``exclusive-lock`` image features enabled.
+- Network space aware. The mirror daemon can be informed about network
+  configuration by binding the `public` and `cluster` endpoints. The daemon
+  will use the network associated with the `cluster` endpoint for mirroring
+  traffic.
 
-To support this the ``ceph-mon`` charm will announce these image features over
-the ``client`` relation when it has units connected to its ``rbd-mirror``
-endpoint.  This will ensure that images created in the deployment get the
-appropriate features to support mirroring.
+Other notes on RBD mirroring:
 
-    RBD Mirroring is only supported when deployed with Ceph Luminous or later.
+- Supports multiple running instances of the mirror daemon in each cluster.
+  Doing so allows for the dynamic re-distribution of the mirroring load amongst
+  the daemons. This addresses both high availability and performance concerns.
+  Leverage this feature by scaling out the `ceph-rbd-mirror` application (i.e.
+  add more units).
 
-The Ceph RBD Mirror feature supports running multiple instances of the daemon.
-Having multiple daemons will cause the mirroring load to automatically be
-(re-)distributed between the daemons.
+- Requires that every RBD image within each pool is created with the
+  `journaling` and `exclusive-lock` image features enabled. The charm enables
+  these features by default and the `ceph-mon` charm will announce them over
+  the `client` relation when it has units connected to its `rbd-mirror`
+  endpoint.
 
-This addresses both High Availability and performance concerns.  You can
-make use of this feature by increasing the number of ``ceph-rbd-mirror`` units
-in your deployment.
-
-    The charm is written for Two-way Replication, which gives you the ability to
-    fail over and fall back to/from a secondary site.
-
-    Ceph does have support for mirroring to any number of slave clusters but
-    this is not implemented nor supported by the charm.
-
-The charm is aware of network spaces and you will be able to tell the RBD
-Mirror daemon about network configuration by binding the ``public`` and
-``cluster`` endpoints.
-
-The RBD Mirror daemon will use the network associated with the ``cluster``
-endpoint for mirroring traffic when available.
-
-For more information on charms and RBD Mirroring see the [Ceph RBD Mirroring][ceph-rbd-mirroring] section of the
-[OpenStack Charms Deployment Guide][charms-deploy-guide].
-
-[ceph-rbd-mirroring]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-ceph-rbd-mirror.html
-[charms-deploy-guide]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/index.html
+- The feature first appeared in Ceph `v.12.2` (Luminous).
 
 # Deployment
 
-    Example bundles with a minimal test configuration can be found
-    in the ``tests/bundles`` subdirectory of the ``ceph-rbd-mirror`` charm.
+It is assumed that the two Ceph clusters have been set up (i.e. `ceph-mon` and
+`ceph-osd` charms are deployed and relations added).
 
-    Both examples of two Ceph clusters deployed in one model and Ceph clusters
-    deployed in separate models are available.
+> **Note**: Minimal two-cluster test bundles can be found in the
+  `src/tests/bundles` subdirectory where both the one-model and two-model
+  scenarios are featured.
 
-To make use of cross model relations you must first set up an offer to export
-a application endpoint from a model.  In this example we use the model names
-``site-a`` and ``site-b``.
+## Using one model
+
+Deploy the charm for each cluster, giving each application a name to
+distinguish one from the other (site 'a' and site 'b'):
+
+    juju deploy ceph-rbd-mirror ceph-rbd-mirror-a
+    juju deploy ceph-rbd-mirror ceph-rbd-mirror-b
+
+Add a relation between the 'ceph-mon' of site 'a' and both the local (site 'a')
+and remote (site 'b') units of 'ceph-rbd-mirror':
+
+    juju add-relation ceph-mon-a ceph-rbd-mirror-a:ceph-local
+    juju add-relation ceph-mon-a ceph-rbd-mirror-b:ceph-remote
+
+Perform the analogous procedure for the 'ceph-mon' of site 'b':
+
+    juju add-relation ceph-mon-b ceph-rbd-mirror-b:ceph-local
+    juju add-relation ceph-mon-b ceph-rbd-mirror-a:ceph-remote
+
+## Using two models
+
+In model 'site-a', deploy the charm and add the local relation:
 
     juju switch site-a
-    juju offer ceph-mon:rbd-mirror site-a-rbd-mirror
+    juju deploy ceph-rbd-mirror ceph-rbd-mirror-a
+    juju add-relation ceph-mon-a ceph-rbd-mirror-a:ceph-local
+
+To create the inter-site relation one must export one of the application
+endpoints from the model by means of an "offer". Here, we make an offer for
+'ceph-rbd-mirror':
+
+    juju offer ceph-rbd-mirror-a:ceph-remote
+    Application "ceph-rbd-mirror-a" endpoints [ceph-remote] available at "admin/site-a.ceph-rbd-mirror-a"
+
+Perform the analogous procedure in the other model ('site-b'):
 
     juju switch site-b
-    juju offer ceph-mon:rbd-mirror site-b-rbd-mirror
+    juju deploy ceph-rbd-mirror ceph-rbd-mirror-b
+    juju add-relation ceph-mon-b ceph-rbd-mirror-b:ceph-local
+    juju offer ceph-rbd-mirror-b:ceph-remote
+    application "ceph-rbd-mirror-b" endpoints [ceph-remote] available at "admin/site-b.ceph-rbd-mirror-b"
 
+Add the *cross model relations* by referring to the offer URLs (included in the
+output above) as if they were application endpoints in each respective model.
 
-After creating the offers we can import the remote offer to a model and add
-a relation between applications just like we normally would do in a
-single-model deployment.
+For site 'a':
 
     juju switch site-a
-    juju consume admin/site-b.site-b-rbd-mirror
-    juju add-relation ceph-rbd-mirror:ceph-remote site-b-rbd-mirror
+    juju add-relation ceph-mon-a admin/site-b.ceph-rbd-mirror-b
+
+For site 'b':
 
     juju switch site-b
-    juju consume admin/site-a.site-a-rbd-mirror
-    juju add-relation ceph-rbd-mirror:ceph-remote site-a-rbd-mirror
+    juju add-relation ceph-mon-b admin/site-a.ceph-rbd-mirror-a
 
 # Usage
 
+Usage procedures covered here touch upon pool creation, failover & fallback,
+and recovery. In all cases we presuppose that each cluster resides within a
+separate model.
+
 ## Pools
 
-Pools created by other charms through the Ceph broker protocol will
-automatically be detected and acted upon.  Pools tagged with the ``rbd``
-application will be selected for mirroring.
+As of the 19.04 OpenStack Charms release, due to Ceph Luminous, any pool
+associated with the RBD application during its creation will automatically be
+labelled with the 'rbd' tag. The following occurs together:
 
-If you manually create a pool, either through actions on the ``ceph-mon``
-charm or by talking to Ceph directly, you must inform the ``ceph-rbd-mirror``
-charm about them.
+Pool creation ==> RBD application-association ==> 'rbd' tag
 
-This is accomplished by executing the ``refresh-pools`` action.
+RBD pools can be created by either a supporting charm (through the Ceph broker
+protocol) or manually by the operator:
 
-    juju run-action -m site-a ceph-mon/leader --wait create-pool name=mypool \
-        app-name=rbd
-    juju run-action -m site-a ceph-rbd-mirror/leader --wait refresh-pools
+1. A charm-created pool (e.g. via `glance`) will automatically be detected and
+acted upon (i.e. a remote pool will be set up).
 
-## Failover and Fallback
+1. A manually-created pool, whether done via the `ceph-mon` application or
+through Ceph directly, will require an action to be run on the
+`ceph-rbd-mirror` application leader in order for the remote pool to come
+online.
 
-Controlled failover and fallback
+For example, a pool is created manually in site 'a' via `ceph-mon` and then
+`ceph-rbd-mirror` (of site 'a') is informed about it:
 
-    juju run-action -m site-a ceph-rbd-mirror/leader --wait status verbose=True
-    juju run-action -m site-b ceph-rbd-mirror/leader --wait status verbose=True
+    juju run-action -m site-a ceph-mon-a/leader --wait create-pool name=mypool app-name=rbd
+    juju run-action -m site-a ceph-rbd-mirror-a/leader --wait refresh-pools
 
-    juju run-action -m site-a ceph-rbd-mirror/leader --wait demote
+## Failover and fallback
 
-    juju run-action -m site-a ceph-rbd-mirror/leader --wait status verbose=True
-    juju run-action -m site-b ceph-rbd-mirror/leader --wait status verbose=True
+To manage failover and fallback, the `demote` and `promote` actions are applied
+to the `ceph-rbd-mirror` application leader.
 
-    juju run-action -m site-b ceph-rbd-mirror/leader --wait promote
+Here, we fail over from site 'a' to site 'b' by demoting site 'a' and promoting
+site 'b'. The rest of the commands are status checks:
 
-__NOTE__ When using Ceph Luminous, the mirror status information may not be
-accurate.  Specifically the ``entries_behind_master`` counter may never get to
-``0`` even though the image is fully synchronized.
+    juju run-action -m site-a ceph-rbd-mirror-a/leader --wait status verbose=True
+    juju run-action -m site-b ceph-rbd-mirror-b/leader --wait status verbose=True
+
+    juju run-action -m site-a ceph-rbd-mirror-a/leader --wait demote
+
+    juju run-action -m site-a ceph-rbd-mirror-a/leader --wait status verbose=True
+    juju run-action -m site-b ceph-rbd-mirror-b/leader --wait status verbose=True
+
+    juju run-action -m site-b ceph-rbd-mirror-b/leader --wait promote
+
+To fall back to site 'a':
+
+    juju run-action -m site-b ceph-rbd-mirror-b/leader --wait demote
+    juju run-action -m site-a ceph-rbd-mirror-a/leader --wait promote
+
+> **Note**: When using Ceph Luminous, the mirror status information may not be
+  accurate. Specifically, the `entries_behind_master` counter may never get to
+  `0` even though the image has been fully synchronised.
 
 ## Recovering from abrupt shutdown
 
-There exist failure scenarios where abrupt shutdown and/or interruptions to
-communication may lead to a split-brain situation where the RBD Mirroring
-process in both Ceph clusters claim to be the primary.
+It is possible that an abrupt shutdown and/or an interruption to communication
+channels may lead to a "split-brain" condition. This may cause the mirroring
+daemon in each cluster to claim to be the primary. In such cases, the operator
+must make a call as to which daemon is correct. Generally speaking, this
+means deciding which cluster has the most recent data.
 
-In such a situation the operator must decide which cluster has the most
-recent data and should be elected primary by using the ``demote`` and
-``promote`` (optionally with force parameter) actions.
+Elect a primary by applying the `demote` and `promote` actions to the
+appropriate `ceph-rbd-mirror` leader. After doing so, the `resync-pools`
+action must be run on the secondary cluster leader. The `promote` action may
+require a force option.
 
-After making this decision the secondary cluster must be resynced to track
-the promoted master, this is done by running the ``resync-pools`` action on
-the non-master cluster.
+Here, we make site 'a' be the primary by demoting site 'b' and promoting site
+'a':
 
     juju run-action -m site-b ceph-rbd-mirror/leader --wait demote
     juju run-action -m site-a ceph-rbd-mirror/leader --wait promote force=True
@@ -155,13 +198,21 @@ the non-master cluster.
 
     juju run-action -m site-b ceph-rbd-mirror/leader --wait resync-pools i-really-mean-it=True
 
-__NOTE__ When using Ceph Luminous, the mirror state information will not be
-accurate after recovering from unclean shutdown.  Regardless of the output of
-the status information you will be able to write to images after a forced
-promote.
+> **Note**: When using Ceph Luminous, the mirror state information will not be
+  accurate after recovering from unclean shutdown. Regardless of the output of
+  the status information, you will be able to write to images after a forced
+  promote.
 
 # Bugs
 
-Please report bugs on [Launchpad](https://bugs.launchpad.net/charm-ceph-rbd-mirror/+filebug).
+Please report bugs for the `ceph-rbd-mirror` charm on [Launchpad][charm-ceph-rbd-mirror-bugs].
 
-For general questions please refer to the OpenStack [Charm Guide](https://docs.openstack.org/charm-guide/latest/).
+For general questions, refer to the [OpenStack Charm Guide][charms-guide].
+
+<!-- LINKS -->
+
+[ceph-multisite-replication]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-rgw-multisite.html
+[ceph-rbd-mirroring]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-ceph-rbd-mirror.html
+[charms-deploy-guide]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/index.html
+[charm-ceph-rbd-mirror-bugs]: https://bugs.launchpad.net/charm-ceph-rbd-mirror/+filebug
+[charms-guide]: https://docs.openstack.org/charm-guide/latest/
