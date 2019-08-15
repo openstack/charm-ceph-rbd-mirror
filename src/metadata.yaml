@@ -17,8 +17,8 @@ tags:
 series:
   - xenial
   - bionic
-  - cosmic
   - disco
+  - eoan
 extra-bindings:
   public:
   cluster:
