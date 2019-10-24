@@ -26,28 +26,28 @@ machines:
     series: bionic
 applications:
   mysql:
-    charm: cs:~openstack-charmers-next/percona-cluster
+    charm: cs:percona-cluster
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:0
   keystone:
-    charm: cs:~openstack-charmers-next/keystone
+    charm: cs:keystone
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:1
   rabbitmq-server:
-    charm: cs:~openstack-charmers-next/rabbitmq-server
+    charm: cs:rabbitmq-server
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:2
   cinder:
-    charm: cs:~openstack-charmers-next/cinder
+    charm: cs:cinder
     num_units: 1
     options:
       block-device: None
@@ -56,32 +56,32 @@ applications:
     to:
     - lxd:0
   cinder-ceph:
-    charm: cs:~openstack-charmers-next/cinder-ceph
+    charm: cs:cinder-ceph
     num_units: 0
   glance:
-    charm: cs:~openstack-charmers-next/glance
+    charm: cs:glance
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:1
   neutron-openvswitch:
-    charm: cs:~openstack-charmers-next/neutron-openvswitch
+    charm: cs:neutron-openvswitch
     num_units: 0
   nova-cloud-controller:
-    charm: cs:~openstack-charmers-next/nova-cloud-controller
+    charm: cs:nova-cloud-controller
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:2
   nova-compute:
-    charm: cs:~openstack-charmers-next/nova-compute
+    charm: cs:nova-compute
     num_units: 1
     to:
     - 0
   ceph-mon:
-    charm: cs:~openstack-charmers-next/ceph-mon
+    charm: cs:ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
@@ -94,7 +94,7 @@ applications:
     - lxd:1
     - lxd:2
   ceph-osd:
-    charm: cs:~openstack-charmers-next/ceph-osd
+    charm: cs:ceph-osd
     num_units: 3
     options:
       source: distro
@@ -118,7 +118,7 @@ applications:
     to:
     - 3
   ceph-mon-b:
-    charm: cs:~openstack-charmers-next/ceph-mon
+    charm: cs:ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
@@ -131,7 +131,7 @@ applications:
     - lxd:5
     - lxd:6
   ceph-osd-b:
-    charm: cs:~openstack-charmers-next/ceph-osd
+    charm: cs:ceph-osd
     num_units: 3
     options:
       source: distro
