@@ -25,6 +25,7 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
     def test_hooks(self):
         defaults = [
             'charm.installed',
+            'config.rendered',
             'update-status',
             'upgrade-charm',
         ]
@@ -56,11 +57,6 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
                 'request_keys': (
                     'ceph-local.connected',
                     'ceph-remote.connected',
-                ),
-            },
-            'when_not': {
-                'disable_services': (
-                    'config.rendered',
                 ),
             },
             'when_not_all': {
@@ -114,16 +110,6 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
             [self.endpoint_from_flag(), self.endpoint_from_flag()])
         self.crm_charm.assess_status.assert_called_once_with()
 
-    def test_disable_services(self):
-        self.patch_object(handlers.ch_core.host, 'service')
-        self.crm_charm.services = ['aservice']
-        handlers.disable_services()
-        self.service.assert_has_calls([
-            mock.call('disable', 'aservice'),
-            mock.call('stop', 'aservice'),
-        ])
-        self.crm_charm.assess_status.assert_called_once_with()
-
     def test_render_stuff(self):
         self.patch_object(handlers.ch_core.host, 'service')
         endpoint_local = mock.MagicMock()
@@ -144,11 +130,6 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         ])
         self.crm_charm.render_with_interfaces.assert_called_once_with(
             (endpoint_local, endpoint_remote))
-        self.service.assert_has_calls([
-            mock.call('enable', 'aservice'),
-            mock.call('start', 'aservice'),
-        ])
-        self.crm_charm.assess_status.assert_called_once_with()
 
     def test_refresh_pools(self):
         self.patch_object(handlers.reactive, 'endpoint_from_name')

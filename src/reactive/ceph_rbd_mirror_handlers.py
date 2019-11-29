@@ -25,6 +25,7 @@ charms_openstack.bus.discover()
 # Use the charms.openstack defaults for common states and hooks
 charm.use_defaults(
     'charm.installed',
+    'config.rendered',
     'update-status',
     'upgrade-charm')
 
@@ -54,15 +55,6 @@ def config_changed():
         charm_instance.assess_status()
 
 
-@reactive.when_not('config.rendered')
-def disable_services():
-    with charm.provide_charm_instance() as charm_instance:
-        for service in charm_instance.services:
-            ch_core.host.service('disable', service)
-            ch_core.host.service('stop', service)
-        charm_instance.assess_status()
-
-
 @reactive.when('ceph-local.available')
 @reactive.when('ceph-remote.available')
 def render_stuff(*args):
@@ -84,11 +76,7 @@ def render_stuff(*args):
             charm_instance.configure_ceph_keyring(endpoint.key,
                                                   cluster_name=cluster_name)
         charm_instance.render_with_interfaces(args)
-        for service in charm_instance.services:
-            ch_core.host.service('enable', service)
-            ch_core.host.service('start', service)
         reactive.set_flag('config.rendered')
-        charm_instance.assess_status()
 
 
 @reactive.when('leadership.is_leader')
