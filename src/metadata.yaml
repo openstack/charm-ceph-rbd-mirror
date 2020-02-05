@@ -17,7 +17,6 @@ tags:
 series:
   - xenial
   - bionic
-  - disco
   - eoan
 extra-bindings:
   public:

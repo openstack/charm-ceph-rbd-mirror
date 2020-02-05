@@ -2,7 +2,6 @@ charm_name: ceph-rbd-mirror
 smoke_bundles:
 - bionic-stein
 gate_bundles:
-- disco-stein
 - bionic-stein
 - bionic-rocky
 - bionic-queens
