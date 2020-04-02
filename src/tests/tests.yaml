@@ -1,7 +1,8 @@
 charm_name: ceph-rbd-mirror
 smoke_bundles:
-- bionic-stein
+- bionic-train
 gate_bundles:
+- bionic-train
 - bionic-stein
 - bionic-rocky
 - bionic-queens
@@ -15,9 +16,14 @@ dev_bundles:
 - focal-victoria
 - bionic-queens-e2e
 - bionic-queens-e2e-lxd
+- bionic-ussuri
+- focal-ussuri
 configure:
 - zaza.openstack.charm_tests.glance.setup.add_lts_image
 tests:
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorControlledFailoverTest
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest
+tests_options:
+  force_deploy:
+    - groovy-victoria
