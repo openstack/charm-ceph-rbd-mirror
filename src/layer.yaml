@@ -7,3 +7,11 @@ options:
   basic:
     use_venv: True
 repo: https://github.com/openstack/charm-ceph-rbd-mirror
+config:
+  deletes:
+    - debug
+    - ssl_ca
+    - ssl_cert
+    - ssl_key
+    - use-internal-endpoints
+    - verbose
