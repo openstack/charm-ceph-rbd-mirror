@@ -10,15 +10,16 @@ description: |
 
   NOTE: The charm requires Ceph Luminous or later.
 tags:
-  - openstack
-  - storage
-  - file-servers
-  - misc
+- openstack
+- storage
+- file-servers
+- misc
 series:
-  - xenial
-  - bionic
-  - eoan
-  - focal
+- xenial
+- bionic
+- eoan
+- focal
+- groovy
 extra-bindings:
   public:
   cluster:
