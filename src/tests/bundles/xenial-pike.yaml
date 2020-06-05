@@ -30,6 +30,11 @@ applications:
     num_units: 1
     options:
       openstack-origin: cloud:xenial-pike
+  nova-compute:
+    charm: cs:~openstack-charmers-next/nova-compute
+    num_units: 1
+    options:
+      openstack-origin: cloud:xenial-pike
   ceph-mon:
     charm: cs:~openstack-charmers-next/ceph-mon
     num_units: 3
@@ -87,6 +92,12 @@ relations:
   - cinder-ceph
 - - cinder-ceph
   - ceph-mon
+- - nova-compute:ceph-access
+  - cinder-ceph:ceph-access
+- - nova-compute:amqp
+  - rabbitmq-server:amqp
+- - glance:image-service
+  - nova-compute:image-service
 - - glance
   - ceph-mon
 - - ceph-mon:osd
