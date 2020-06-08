@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import collections
-import mock
 import json
+from unittest import mock
 import subprocess
 
 import charms_openstack.test_utils as test_utils
