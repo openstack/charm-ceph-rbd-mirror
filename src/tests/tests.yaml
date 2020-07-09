@@ -11,6 +11,8 @@ comment: |
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
 dev_bundles:
+- groovy-victoria
+- focal-victoria
 - bionic-queens-e2e
 - bionic-queens-e2e-lxd
 configure:
