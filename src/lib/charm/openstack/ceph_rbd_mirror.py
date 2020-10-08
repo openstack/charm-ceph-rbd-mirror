@@ -24,6 +24,7 @@ import charms_openstack.adapters
 import charms_openstack.plugins
 
 import charmhelpers.core as ch_core
+import charmhelpers.contrib.storage.linux.ceph as ch_ceph
 
 
 class CephRBDMirrorCharmRelationAdapters(
@@ -156,3 +157,48 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
         subprocess.check_call(base_cmd + ['peer', 'add', pool,
                                           'client.{}@remote'
                                           .format(self.ceph_id)])
+
+    def pools_in_broker_request(self, rq, ops_to_check=None):
+        """Extract pool names touched by a broker request.
+
+        :param rq: Ceph Broker Request Object
+        :type rq: ch_ceph.CephBrokerRq
+        :param ops_to_check: Set providing which ops to check
+        :type ops_to_check: Optional[Set[str]]
+        :returns: Set of pool names
+        :rtype: Set[str]
+        """
+        assert rq.api_version == 1
+        ops_to_check = ops_to_check or set(('create-pool',))
+        result_set = set()
+        for op in rq.ops:
+            if op['op'] in ops_to_check:
+                result_set.add(op['name'])
+        return result_set
+
+    def collapse_and_filter_broker_requests(self, broker_requests,
+                                            allowed_ops, require_vp=None):
+        """Extract allowed ops from broker requests into one collapsed request.
+
+        :param broker_requests: List of broker requests
+        :type broker_requests: List[ch_ceph.CephBrokerRq]
+        :param allowed_ops: Set of ops to allow
+        :type allowed_ops: Set
+        :param require_vp: Map of required key-value pairs in op
+        :type require_vp: Optional[Dict[str,any]]
+        :returns: Collapsed broker request
+        :rtype: Optional[ch_ceph.CephBrokerRq]
+        """
+        require_vp = require_vp or {}
+        new_rq = ch_ceph.CephBrokerRq()
+        for rq in broker_requests:
+            assert rq['api-version'] == 1
+            for op in rq['ops']:
+                if op['op'] in allowed_ops:
+                    for k, v in require_vp.items():
+                        if k not in op or op[k] != v:
+                            break
+                    else:
+                        new_rq.add_op(op)
+        if len(new_rq.ops):
+            return new_rq

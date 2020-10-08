@@ -18,6 +18,7 @@ import charms_openstack.bus
 import charms_openstack.charm as charm
 
 import charmhelpers.core as ch_core
+import charmhelpers.contrib.storage.linux.ceph as ch_ceph
 
 
 charms_openstack.bus.discover()
@@ -105,26 +106,50 @@ def configure_pools():
     local = reactive.endpoint_from_flag('ceph-local.available')
     remote = reactive.endpoint_from_flag('ceph-remote.available')
     with charm.provide_charm_instance() as charm_instance:
+        rq = charm_instance.collapse_and_filter_broker_requests(
+            local.broker_requests, set(('create-pool',)),
+            require_vp={'app-name': 'rbd'})
+        remote_rq = charm_instance.collapse_and_filter_broker_requests(
+            remote.broker_requests, set(('create-pool',)),
+            require_vp={'app-name': 'rbd'})
+        pools_in_rq = charm_instance.pools_in_broker_request(
+            rq) if rq else set()
+        pools_in_rq |= charm_instance.pools_in_broker_request(
+            remote_rq) if remote_rq else set()
         for pool, attrs in charm_instance.eligible_pools(local.pools).items():
             if not (charm_instance.mirror_pool_enabled(pool) and
                     charm_instance.mirror_pool_has_peers(pool)):
+                ch_core.hookenv.log('Enabling mirroring for pool "{}"'
+                                    .format(pool),
+                                    level=ch_core.hookenv.INFO)
                 charm_instance.mirror_pool_enable(pool)
-            pg_num = attrs['parameters'].get('pg_num', None)
-            max_bytes = attrs['quota'].get('max_bytes', None)
-            max_objects = attrs['quota'].get('max_objects', None)
-            if 'erasure_code_profile' in attrs['parameters']:
-                ec_profile = attrs['parameters'].get(
-                    'erasure_code_profile', None)
-                remote.create_erasure_pool(pool,
-                                           erasure_profile=ec_profile,
-                                           pg_num=pg_num,
-                                           app_name='rbd',
-                                           max_bytes=max_bytes,
-                                           max_objects=max_objects)
-            else:
-                size = attrs['parameters'].get('size', None)
-                remote.create_replicated_pool(pool, replicas=size,
-                                              pg_num=pg_num,
-                                              app_name='rbd',
-                                              max_bytes=max_bytes,
-                                              max_objects=max_objects)
+            if (pool not in pools_in_rq and
+                    'erasure_code_profile' not in attrs['parameters']):
+                # A pool exists that there is no broker request for which means
+                # it is a manually created pool. We will forward creation of
+                # replicated pools but forwarding of manually created Erasure
+                # Coded pools is not supported.
+                pg_num = attrs['parameters'].get('pg_num')
+                max_bytes = attrs['quota'].get('max_bytes')
+                max_objects = attrs['quota'].get('max_objects')
+                size = attrs['parameters'].get('size')
+                ch_core.hookenv.log('Adding manually created pool "{}" to '
+                                    'request.'
+                                    .format(pool),
+                                    level=ch_core.hookenv.INFO)
+                if not rq:
+                    rq = ch_ceph.CephBrokerRq()
+                rq.add_op_create_replicated_pool(
+                    pool,
+                    replica_count=size if not size else int(size),
+                    pg_num=pg_num if not pg_num else int(pg_num),
+                    app_name='rbd',
+                    max_bytes=max_bytes if not max_bytes else int(max_bytes),
+                    max_objects=max_objects if not max_objects else int(
+                        max_objects),
+                )
+        ch_core.hookenv.log('Request for evaluation: "{}"'
+                            .format(rq),
+                            level=ch_core.hookenv.DEBUG)
+        if rq:
+            remote.maybe_send_rq(rq)

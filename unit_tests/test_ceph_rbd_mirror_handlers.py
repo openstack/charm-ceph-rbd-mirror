@@ -181,34 +181,4 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
             'cinder-ceph')
         self.crm_charm.mirror_pool_enable.assert_called_once_with(
             'cinder-ceph')
-        endpoint_remote.create_replicated_pool.assert_called_once_with(
-            'cinder-ceph', replicas=3, pg_num=42, app_name='rbd',
-            max_bytes=1024, max_objects=51)
-        self.assertFalse(endpoint_remote.create_erasure_pool.called)
-        self.endpoint_from_flag.side_effect = [endpoint_local,
-                                               endpoint_remote]
-        self.crm_charm.mirror_pool_enabled.return_value = True
-        self.crm_charm.mirror_pool_has_peers.return_value = True
-        self.crm_charm.mirror_pool_enabled.reset_mock()
-        self.crm_charm.mirror_pool_enable.reset_mock()
-        handlers.configure_pools()
-        self.crm_charm.mirror_pool_enabled.assert_called_once_with(
-            'cinder-ceph')
-        self.crm_charm.mirror_pool_has_peers.assert_called_once_with(
-            'cinder-ceph')
-        self.assertFalse(self.crm_charm.mirror_pool_enable.called)
-        endpoint_local.pools = {
-            'cinder-ceph': {
-                'applications': {'rbd': {}},
-                'parameters': {'pg_num': 42, 'erasure_code_profile': 'prof'},
-                'quota': {'max_bytes': 1024, 'max_objects': 51},
-            },
-        }
-        self.endpoint_from_flag.side_effect = [endpoint_local,
-                                               endpoint_remote]
-        endpoint_remote.create_replicated_pool.reset_mock()
-        self.crm_charm.eligible_pools.return_value = endpoint_local.pools
-        handlers.configure_pools()
-        endpoint_remote.create_erasure_pool.assert_called_once_with(
-            'cinder-ceph', erasure_profile='prof', pg_num=42, app_name='rbd',
-            max_bytes=1024, max_objects=51)
+        endpoint_remote.maybe_send_rq.assert_called_once_with(mock.ANY)
