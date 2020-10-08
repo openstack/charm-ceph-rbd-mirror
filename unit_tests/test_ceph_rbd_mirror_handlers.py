@@ -52,15 +52,22 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
                     'ceph-local.available',
                     'ceph-remote.available',
                 ),
-            },
-            'when_all': {
                 'request_keys': (
                     'ceph-local.connected',
                     'ceph-remote.connected',
                 ),
             },
-            'when_not_all': {
+            'when_none': {
+                'config_changed': (
+                    'is-update-status-hook',),
+                'render_stuff': (
+                    'is-update-status-hook',),
+                'refresh_pools': (
+                    'is-update-status-hook',),
+                'configure_pools': (
+                    'is-update-status-hook',),
                 'request_keys': (
+                    'is-update-status-hook',
                     'ceph-local.available',
                     'ceph-remote.available',
                 ),

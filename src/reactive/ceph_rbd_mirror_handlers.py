@@ -30,8 +30,11 @@ charm.use_defaults(
     'upgrade-charm')
 
 
-@reactive.when_all('ceph-local.connected', 'ceph-remote.connected')
-@reactive.when_not_all('ceph-local.available', 'ceph-remote.available')
+@reactive.when_none('is-update-status-hook',
+                    'ceph-local.available',
+                    'ceph-remote.available')
+@reactive.when('ceph-local.connected',
+               'ceph-remote.connected')
 def request_keys():
     with charm.provide_charm_instance() as charm_instance:
         for flag in ('ceph-local.connected', 'ceph-remote.connected'):
@@ -43,9 +46,10 @@ def request_keys():
         charm_instance.assess_status()
 
 
-@reactive.when('config.changed')
-@reactive.when('ceph-local.available')
-@reactive.when('ceph-remote.available')
+@reactive.when_none('is-update-status-hook')
+@reactive.when('config.changed',
+               'ceph-local.available',
+               'ceph-remote.available')
 def config_changed():
     with charm.provide_charm_instance() as charm_instance:
         charm_instance.upgrade_if_available([
@@ -55,8 +59,9 @@ def config_changed():
         charm_instance.assess_status()
 
 
-@reactive.when('ceph-local.available')
-@reactive.when('ceph-remote.available')
+@reactive.when_none('is-update-status-hook')
+@reactive.when('ceph-local.available',
+               'ceph-remote.available')
 def render_stuff(*args):
     with charm.provide_charm_instance() as charm_instance:
         for endpoint in args:
@@ -79,10 +84,11 @@ def render_stuff(*args):
         reactive.set_flag('config.rendered')
 
 
-@reactive.when('leadership.is_leader')
-@reactive.when('refresh.pools')
-@reactive.when('ceph-local.available')
-@reactive.when('ceph-remote.available')
+@reactive.when_none('is-update-status-hook')
+@reactive.when('leadership.is_leader',
+               'refresh.pools',
+               'ceph-local.available',
+               'ceph-remote.available')
 def refresh_pools():
     for endpoint in 'ceph-local', 'ceph-remote':
         endpoint = reactive.endpoint_from_name(endpoint)
@@ -90,10 +96,11 @@ def refresh_pools():
     reactive.clear_flag('refresh.pools')
 
 
-@reactive.when('leadership.is_leader')
-@reactive.when('config.rendered')
-@reactive.when('ceph-local.available')
-@reactive.when('ceph-remote.available')
+@reactive.when_none('is-update-status-hook')
+@reactive.when('leadership.is_leader',
+               'config.rendered',
+               'ceph-local.available',
+               'ceph-remote.available')
 def configure_pools():
     local = reactive.endpoint_from_flag('ceph-local.available')
     remote = reactive.endpoint_from_flag('ceph-remote.available')
