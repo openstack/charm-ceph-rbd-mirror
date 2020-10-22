@@ -21,6 +21,7 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
+      openstack-origin: cloud:bionic-stein
   cinder-ceph:
     charm: cs:~openstack-charmers-next/cinder-ceph
     num_units: 0

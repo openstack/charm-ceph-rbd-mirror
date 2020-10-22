@@ -21,6 +21,7 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
+      openstack-origin: cloud:bionic-train
   cinder-ceph:
     charm: cs:~openstack-charmers-next/cinder-ceph
     num_units: 0
@@ -32,6 +33,8 @@ applications:
   nova-compute:
     charm: cs:~openstack-charmers-next/nova-compute
     num_units: 1
+    options:
+      openstack-origin: cloud:bionic-train
   ceph-mon:
     charm: cs:~openstack-charmers-next/ceph-mon
     num_units: 3
