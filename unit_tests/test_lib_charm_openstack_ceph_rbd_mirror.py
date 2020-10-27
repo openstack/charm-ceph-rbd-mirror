@@ -14,6 +14,7 @@
 
 import collections
 import mock
+import json
 import subprocess
 
 import charms_openstack.test_utils as test_utils
@@ -92,10 +93,10 @@ class TestCephRBDMirrorCharm(Helper):
                     'client.rbd-mirror.juju-c50b1a-zaza-4ce96f1e7e43-12'}]
         }
         crmc._mirror_pool_info = _mirror_pool_info
-        self.assertTrue(crmc.mirror_pool_enabled('apool'))
+        self.assertTrue(crmc.mirror_pool_enabled('apool', mode='pool'))
         _mirror_pool_info.assert_called_once_with('apool')
         _mirror_pool_info.return_value = {'mode': 'disabled'}
-        self.assertFalse(crmc.mirror_pool_enabled('apool'))
+        self.assertFalse(crmc.mirror_pool_enabled('apool', mode='pool'))
 
     def test_mirror_pool_has_peers(self):
         self.patch_object(ceph_rbd_mirror.socket, 'gethostname')
@@ -192,3 +193,55 @@ class TestCephRBDMirrorCharm(Helper):
             {'app-name': 'rbd', 'name': 'pool-rq2', 'op': 'create-pool',
              'someotherkey': 'value'})
         self.assertTrue(len(rq.ops) == 1)
+
+    def test_pool_mirroring_mode(self):
+        self.patch_object(ceph_rbd_mirror.ch_ceph, 'CephBrokerRq')
+
+        class FakeCephBrokerRq(object):
+            def __init__(self, raw_request_data=None):
+                request_data = json.loads(raw_request_data)
+                self.api_version = request_data['api-version']
+                self.request_id = request_data['request-id']
+                self.set_ops(request_data['ops'])
+
+            def set_ops(self, ops):
+                self.ops = ops
+
+            def add_op(self, op):
+                self.ops.append(op)
+
+        self.CephBrokerRq.side_effect = FakeCephBrokerRq
+
+        brq1_data = json.dumps({
+            'api-version': 1,
+            'request-id': 'broker_rq1',
+            'ops': [
+                {
+                    'op': 'create-pool',
+                    'name': 'pool-rq0',
+                    'app-name': 'rbd-pool',
+                    'rbd-mirroring-mode': 'pool'
+                },
+            ]
+        })
+        brq2_data = json.dumps({
+            'api-version': 1,
+            'request-id': 'broker_rq2',
+            'ops': [
+                {
+                    'op': 'create-pool',
+                    'name': 'pool-rq1',
+                    'app-name': 'rbd-image',
+                    'rbd-mirroring-mode': 'image'
+                },
+            ]
+        })
+
+        brq1 = self.CephBrokerRq(raw_request_data=brq1_data)
+        brq2 = self.CephBrokerRq(raw_request_data=brq2_data)
+        broker_requests = [brq1, brq2, None]
+        crmc = ceph_rbd_mirror.CephRBDMirrorCharm()
+        rq0 = crmc.pool_mirroring_mode('pool-rq0', broker_requests)
+        self.assertEqual('pool', rq0)
+        rq1 = crmc.pool_mirroring_mode('pool-rq1', broker_requests)
+        self.assertEqual('image', rq1)

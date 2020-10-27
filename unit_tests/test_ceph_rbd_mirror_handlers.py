@@ -157,11 +157,17 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         self.patch_object(handlers.reactive, 'endpoint_from_flag')
         endpoint_local = mock.MagicMock()
         endpoint_remote = mock.MagicMock()
+        self.crm_charm.collapse_and_filter_broker_requests.side_effect = [
+            endpoint_local, endpoint_remote]
         endpoint_local.endpoint_name = 'ceph-local'
         endpoint_local.pools = {
             'cinder-ceph': {
                 'applications': {'rbd': {}},
-                'parameters': {'pg_num': 42, 'size': 3},
+                'parameters': {
+                    'pg_num': 42,
+                    'size': 3,
+                    'rbd-mirroring-mode': 'pool'
+                },
                 'quota': {'max_bytes': 1024, 'max_objects': 51},
             },
         }
@@ -170,6 +176,8 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
                                                endpoint_remote]
         self.crm_charm.eligible_pools.return_value = endpoint_local.pools
         self.crm_charm.mirror_pool_enabled.return_value = False
+        self.crm_charm.pool_mirroring_mode.return_value = 'pool'
+
         handlers.configure_pools()
         self.endpoint_from_flag.assert_has_calls([
             mock.call('ceph-local.available'),
@@ -177,8 +185,10 @@ class TestCephRBDMirrorHandlers(test_utils.PatchHelper):
         ])
         self.crm_charm.eligible_pools.assert_called_once_with(
             endpoint_local.pools)
+        self.crm_charm.pool_mirroring_mode.assert_called_once_with(
+            'cinder-ceph', [endpoint_local, endpoint_remote])
         self.crm_charm.mirror_pool_enabled.assert_called_once_with(
-            'cinder-ceph')
+            'cinder-ceph', 'pool')
         self.crm_charm.mirror_pool_enable.assert_called_once_with(
-            'cinder-ceph')
-        endpoint_remote.maybe_send_rq.assert_called_once_with(mock.ANY)
+            'cinder-ceph', 'pool')
+        endpoint_remote.maybe_send_rq.assert_called_once_with(endpoint_local)

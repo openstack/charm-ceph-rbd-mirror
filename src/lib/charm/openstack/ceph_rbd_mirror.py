@@ -126,8 +126,8 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                                          universal_newlines=True)
         return json.loads(output)
 
-    def mirror_pool_enabled(self, pool):
-        return self._mirror_pool_info(pool).get('mode', None) == 'pool'
+    def mirror_pool_enabled(self, pool, mode='pool'):
+        return self._mirror_pool_info(pool).get('mode', None) == mode
 
     def mirror_pool_has_peers(self, pool):
         return len(self._mirror_pool_info(pool).get('peers', [])) > 0
@@ -151,9 +151,9 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
                 stats['image_states'][state] += value
         return stats
 
-    def mirror_pool_enable(self, pool):
+    def mirror_pool_enable(self, pool, mode='pool'):
         base_cmd = ['rbd', '--id', self.ceph_id, 'mirror', 'pool']
-        subprocess.check_call(base_cmd + ['enable', pool, 'pool'])
+        subprocess.check_call(base_cmd + ['enable', pool, mode])
         subprocess.check_call(base_cmd + ['peer', 'add', pool,
                                           'client.{}@remote'
                                           .format(self.ceph_id)])
@@ -175,6 +175,32 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
             if op['op'] in ops_to_check:
                 result_set.add(op['name'])
         return result_set
+
+    def pool_mirroring_mode(self, pool, broker_requests=[]):
+        """Get the Ceph RBD mirroring mode for the pool.
+
+        Checks if the pool RBD mirroring mode was explicitly set as part of
+        the 'create-pool' operation into any of the given broker requests.
+        If this is true, its value is returned, otherwise the default 'pool'
+        mirroring mode is used.
+
+        :param pool: Pool name
+        :type pool: str
+        :param broker_requests: List of broker requests
+        :type broker_requests: List[ch_ceph.CephBrokerRq]
+        :returns: Ceph RBD mirroring mode
+        :rtype: str
+        """
+        default_mirroring_mode = 'pool'
+        for rq in broker_requests:
+            if not rq:
+                continue
+            assert rq.api_version == 1
+            for op in rq.ops:
+                if op['op'] == 'create-pool' and op['name'] == pool:
+                    return op.get(
+                        'rbd-mirroring-mode', default_mirroring_mode)
+        return default_mirroring_mode
 
     def collapse_and_filter_broker_requests(self, broker_requests,
                                             allowed_ops, require_vp=None):

@@ -117,12 +117,16 @@ def configure_pools():
         pools_in_rq |= charm_instance.pools_in_broker_request(
             remote_rq) if remote_rq else set()
         for pool, attrs in charm_instance.eligible_pools(local.pools).items():
-            if not (charm_instance.mirror_pool_enabled(pool) and
-                    charm_instance.mirror_pool_has_peers(pool)):
+            pool_mirroring_mode = charm_instance.pool_mirroring_mode(
+                pool, [rq, remote_rq])
+            mirroring_enabled = charm_instance.mirror_pool_enabled(
+                pool, pool_mirroring_mode)
+            has_peers = charm_instance.mirror_pool_has_peers(pool)
+            if not (mirroring_enabled and has_peers):
                 ch_core.hookenv.log('Enabling mirroring for pool "{}"'
                                     .format(pool),
                                     level=ch_core.hookenv.INFO)
-                charm_instance.mirror_pool_enable(pool)
+                charm_instance.mirror_pool_enable(pool, pool_mirroring_mode)
             if (pool not in pools_in_rq and
                     'erasure_code_profile' not in attrs['parameters']):
                 # A pool exists that there is no broker request for which means
