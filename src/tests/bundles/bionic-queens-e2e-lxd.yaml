@@ -165,8 +165,8 @@ relations:
   - cinder
 - - cinder
   - cinder-ceph
-- - cinder-ceph
-  - ceph-mon
+- - cinder-ceph:ceph
+  - ceph-mon:client
 - - ceph-mon:osd
   - ceph-osd:mon
 - - ceph-mon

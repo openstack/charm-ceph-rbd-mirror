@@ -138,8 +138,8 @@ relations:
 
 - - cinder
   - cinder-ceph
-- - cinder-ceph
-  - ceph-mon
+- - cinder-ceph:ceph
+  - ceph-mon:client
 
 - - nova-compute:ceph-access
   - cinder-ceph:ceph-access
