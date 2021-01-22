@@ -1,15 +1,25 @@
 demote:
   description: |
-    Demote all primary images within all pools to non-primary.
+    Demote all primary images within given pools to non-primary.
   params:
     force:
       type: boolean
+    pools:
+      type: string
+      description: |
+        Comma-separated list of pools to demote. If this is not set, all the
+        pools will be demoted.
 promote:
   description: |
-    Promote all non-primary images within all pools to primary.
+    Promote all non-primary images within given pools to primary.
   params:
     force:
       type: boolean
+    pools:
+      type: string
+      description: |
+        Comma-separated list of pools to promote. If this is not set, all the
+        pools will be promoted.
 refresh-pools:
   description: |
     \
@@ -19,13 +29,19 @@ refresh-pools:
 resync-pools:
   description: |
     \
-        USE WITH CAUTION - Force image resync for all images in pools on local
-                           Ceph endpoint.
+        USE WITH CAUTION - Force image resync for all images in the given
+                           pools on local Ceph endpoint.
   params:
     i-really-mean-it:
       type: boolean
       description: |
         This must be set to true to perform the action
+    pools:
+      type: string
+      description: |
+        Comma-separated list of pools to resync from the local Ceph endpoint.
+        If this is not set, all the pools from the local Ceph endpoint will
+        be resynced.
   required:
     - i-really-mean-it
 status:
@@ -41,3 +57,8 @@ status:
         - plain
         - json
         - xml
+    pools:
+      type: string
+      description: |
+        Comma-separated list of pools to include in the status. If this is
+        not set, all the pools will be included.

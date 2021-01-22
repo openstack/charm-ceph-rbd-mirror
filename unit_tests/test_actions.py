@@ -55,6 +55,7 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
         self.endpoint_from_name.assert_called_once_with('ceph-local')
         self.crm_charm.eligible_pools.assert_called_once_with(endpoint.pools)
         self.action_get.assert_has_calls([
+            mock.call('pools'),
             mock.call('force'),
             mock.call('verbose'),
             mock.call('format'),
@@ -76,7 +77,7 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
             sorted(self.action_set.call_args[0][0]['output'].split('\n')),
             ['apool: Promoted 0 mirrored images',
              'bpool: Promoted 0 mirrored images'])
-        self.action_get.side_effect = [True, True, False]
+        self.action_get.side_effect = [None, True, True, False]
         self.check_output.reset_mock()
         actions.rbd_mirror_action(['promote'])
         self.check_output.assert_has_calls([
@@ -90,6 +91,21 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
                       universal_newlines=True),
         ], any_order=True)
         self.action_get.assert_has_calls([
+            mock.call('pools'),
+            mock.call('force'),
+            mock.call('verbose'),
+            mock.call('format'),
+        ])
+        self.action_get.side_effect = ['apool', True, True, False]
+        self.check_output.reset_mock()
+        actions.rbd_mirror_action(['promote'])
+        self.check_output.assert_called_once_with(
+            ['rbd', '--id', 'acephid', 'mirror', 'pool', 'promote',
+             '--force', '--verbose', 'apool'],
+            stderr=actions.subprocess.STDOUT,
+            universal_newlines=True)
+        self.action_get.assert_has_calls([
+            mock.call('pools'),
             mock.call('force'),
             mock.call('verbose'),
             mock.call('format'),
@@ -123,16 +139,38 @@ class TestCephRBDMirrorActions(test_utils.PatchHelper):
         self.endpoint_from_name.return_value = endpoint
         self.crm_charm.eligible_pools.return_value = endpoint.pools
         self.crm_charm.ceph_id = 'acephid'
-        self.action_get.return_value = False
+        self.action_get.side_effect = [False, None]
         actions.resync_pools([])
+        self.action_get.assert_has_calls([
+            mock.call('i-really-mean-it'),
+        ])
         self.assertFalse(self.check_output.called)
         self.assertFalse(self.action_set.called)
-        self.action_get.return_value = True
-        self.check_output.side_effect = [
-            json.dumps(['imagea']),
-            'resync flagged for imagea\n',
-        ]
+        self.action_get.side_effect = [True, 'bpool']
+        self.check_output.return_value = json.dumps([])
         actions.resync_pools([])
+        self.action_get.assert_has_calls([
+            mock.call('i-really-mean-it'),
+            mock.call('pools'),
+        ])
+        self.check_output.assert_called_once_with(
+            ['rbd', '--id', 'acephid', '--format', 'json',
+             '-p', 'bpool', 'ls'],
+            universal_newlines=True)
+        self.action_set.assert_called_once_with({'output': ''})
+        self.action_get.side_effect = [True, None]
+        self.check_output.side_effect = [
+            json.dumps(['imagea', 'imageb']),
+            json.dumps({'mirroring': {'state': 'enabled'}}),
+            'resync flagged for imagea\n',
+            json.dumps({'mirroring': {'state': 'disabled'}}),
+        ]
+        self.check_output.reset_mock()
+        actions.resync_pools([])
+        self.action_get.assert_has_calls([
+            mock.call('i-really-mean-it'),
+            mock.call('pools'),
+        ])
         self.assertEquals(
             sorted(self.action_set.call_args[0][0]['output'].split('\n')),
             ['apool/imagea: resync flagged for imagea'])

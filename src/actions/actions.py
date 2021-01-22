@@ -40,12 +40,22 @@ ch_core.hookenv._run_atstart()
 charms_openstack.bus.discover()
 
 
+def get_pools():
+    """Get the list of pools given as parameter to perform the actions on."""
+    pools = ch_core.hookenv.action_get('pools')
+    if pools:
+        return [p.strip() for p in pools.split(',')]
+    return None
+
+
 def rbd_mirror_action(args):
     """Perform RBD command on pools in local Ceph endpoint."""
     action_name = os.path.basename(args[0])
     with charms_openstack.charm.provide_charm_instance() as charm:
         ceph_local = reactive.endpoint_from_name('ceph-local')
-        pools = charm.eligible_pools(ceph_local.pools)
+        pools = get_pools()
+        if not pools:
+            pools = charm.eligible_pools(ceph_local.pools)
         result = {}
         cmd = ['rbd', '--id', charm.ceph_id, 'mirror', 'pool', action_name]
         if ch_core.hookenv.action_get('force'):
@@ -103,7 +113,9 @@ def resync_pools(args):
         return
     with charms_openstack.charm.provide_charm_instance() as charm:
         ceph_local = reactive.endpoint_from_name('ceph-local')
-        pools = charm.eligible_pools(ceph_local.pools)
+        pools = get_pools()
+        if not pools:
+            pools = charm.eligible_pools(ceph_local.pools)
         result = collections.defaultdict(dict)
         for pool in pools:
             # list images in pool
@@ -112,6 +124,12 @@ def resync_pools(args):
                  '-p', pool, 'ls'], universal_newlines=True)
             images = json.loads(output)
             for image in images:
+                output = subprocess.check_output(
+                    ['rbd', '--id', charm.ceph_id, '--format', 'json', 'info',
+                     '{}/{}'.format(pool, image)], universal_newlines=True)
+                image_info = json.loads(output)
+                if image_info['mirroring']['state'] == 'disabled':
+                    continue
                 output = subprocess.check_output(
                     ['rbd', '--id', charm.ceph_id, 'mirror', 'image', 'resync',
                      '{}/{}'.format(pool, image)], universal_newlines=True)
