@@ -4,10 +4,7 @@ smoke_bundles:
 gate_bundles:
 - bionic-train
 - bionic-stein
-- bionic-rocky
 - bionic-queens
-- xenial-queens
-- xenial-pike
 comment: |
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
@@ -16,8 +13,11 @@ dev_bundles:
 - focal-victoria
 - bionic-queens-e2e
 - bionic-queens-e2e-lxd
+- bionic-rocky
 - bionic-ussuri
 - focal-ussuri
+- xenial-queens
+- xenial-pike
 configure:
 - zaza.openstack.charm_tests.glance.setup.add_lts_image
 tests:
