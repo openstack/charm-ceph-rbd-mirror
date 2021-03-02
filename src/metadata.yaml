@@ -19,6 +19,7 @@ series:
 - bionic
 - focal
 - groovy
+- hirsute
 extra-bindings:
   public:
   cluster:
