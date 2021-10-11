@@ -26,28 +26,31 @@ machines:
     series: bionic
 applications:
   mysql:
-    charm: cs:~openstack-charmers-next/percona-cluster
+    charm: cs:~openstack-charmers/percona-cluster
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:0
+    channel: candidate
   keystone:
-    charm: cs:~openstack-charmers-next/keystone
+    charm: cs:~openstack-charmers/keystone
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:1
+    channel: candidate
   rabbitmq-server:
-    charm: cs:~openstack-charmers-next/rabbitmq-server
+    charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:2
+    channel: candidate
   cinder:
-    charm: cs:~openstack-charmers-next/cinder
+    charm: cs:~openstack-charmers/cinder
     num_units: 1
     options:
       block-device: None
@@ -55,33 +58,39 @@ applications:
       '': libvirt-maas
     to:
     - lxd:0
+    channel: candidate
   cinder-ceph:
-    charm: cs:~openstack-charmers-next/cinder-ceph
+    charm: cs:~openstack-charmers/cinder-ceph
     num_units: 0
+    channel: candidate
   glance:
-    charm: cs:~openstack-charmers-next/glance
+    charm: cs:~openstack-charmers/glance
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:1
+    channel: candidate
   neutron-openvswitch:
-    charm: cs:~openstack-charmers-next/neutron-openvswitch
+    charm: cs:~openstack-charmers/neutron-openvswitch
     num_units: 0
+    channel: candidate
   nova-cloud-controller:
-    charm: cs:~openstack-charmers-next/nova-cloud-controller
+    charm: cs:~openstack-charmers/nova-cloud-controller
     num_units: 1
     bindings:
       '': libvirt-maas
     to:
     - lxd:2
+    channel: candidate
   nova-compute:
-    charm: cs:~openstack-charmers-next/nova-compute
+    charm: cs:~openstack-charmers/nova-compute
     num_units: 1
     to:
     - 0
+    channel: candidate
   ceph-mon:
-    charm: cs:~openstack-charmers-next/ceph-mon
+    charm: cs:~openstack-charmers/ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
@@ -93,8 +102,9 @@ applications:
     - lxd:0
     - lxd:1
     - lxd:2
+    channel: candidate
   ceph-osd:
-    charm: cs:~openstack-charmers-next/ceph-osd
+    charm: cs:~openstack-charmers/ceph-osd
     num_units: 3
     options:
       source: distro
@@ -106,6 +116,7 @@ applications:
     - 0
     - 1
     - 2
+    channel: candidate
   ceph-rbd-mirror:
     series: bionic
     charm: ../../../ceph-rbd-mirror
@@ -118,7 +129,7 @@ applications:
     to:
     - 3
   ceph-mon-b:
-    charm: cs:~openstack-charmers-next/ceph-mon
+    charm: cs:~openstack-charmers/ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
@@ -130,8 +141,9 @@ applications:
     - lxd:4
     - lxd:5
     - lxd:6
+    channel: candidate
   ceph-osd-b:
-    charm: cs:~openstack-charmers-next/ceph-osd
+    charm: cs:~openstack-charmers/ceph-osd
     num_units: 3
     options:
       source: distro
@@ -143,6 +155,7 @@ applications:
     - 4
     - 5
     - 6
+    channel: candidate
   ceph-rbd-mirror-b:
     series: bionic
     charm: ../../../ceph-rbd-mirror
