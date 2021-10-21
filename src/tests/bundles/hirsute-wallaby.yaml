@@ -15,13 +15,10 @@ applications:
 
   keystone-mysql-router:
     charm: cs:~openstack-charmers/mysql-router
-    channel: candidate
   glance-mysql-router:
     charm: cs:~openstack-charmers/mysql-router
-    channel: candidate
   cinder-mysql-router:
     charm: cs:~openstack-charmers/mysql-router
-    channel: candidate
 
   mysql-innodb-cluster:
     charm: cs:~openstack-charmers/mysql-innodb-cluster
@@ -32,21 +29,18 @@ applications:
       - '0'
       - '1'
       - '2'
-    channel: candidate
 
   keystone:
     charm: cs:~openstack-charmers/keystone
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: candidate
 
   rabbitmq-server:
     charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     options:
       source: *openstack-origin
-    channel: candidate
 
   cinder:
     charm: cs:~openstack-charmers/cinder
@@ -54,26 +48,22 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
-    channel: candidate
 
   cinder-ceph:
     charm: cs:~openstack-charmers/cinder-ceph
     num_units: 0
-    channel: candidate
 
   glance:
     charm: cs:~openstack-charmers/glance
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: candidate
 
   nova-compute:
     charm: cs:~openstack-charmers/nova-compute
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: candidate
 
   ceph-mon:
     charm: cs:~openstack-charmers/ceph-mon
@@ -81,7 +71,6 @@ applications:
     options:
       expected-osd-count: 3
       source: *openstack-origin
-    channel: candidate
 
   ceph-osd:
     charm: cs:~openstack-charmers/ceph-osd
@@ -91,7 +80,6 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
-    channel: candidate
 
   ceph-rbd-mirror:
     series: *series
@@ -106,7 +94,6 @@ applications:
     options:
       expected-osd-count: 3
       source: *openstack-origin
-    channel: candidate
 
   ceph-osd-b:
     charm: cs:~openstack-charmers/ceph-osd
@@ -116,7 +103,6 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
-    channel: candidate
 
   ceph-rbd-mirror-b:
     series: *series

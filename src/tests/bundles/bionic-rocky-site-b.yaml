@@ -6,7 +6,6 @@ applications:
     options:
       expected-osd-count: 3
       source: cloud:bionic-rocky
-    channel: candidate
   ceph-osd:
     charm: cs:~openstack-charmers/ceph-osd
     num_units: 3
@@ -15,7 +14,6 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
-    channel: candidate
   ceph-rbd-mirror:
     series: bionic
     charm: ../../../ceph-rbd-mirror

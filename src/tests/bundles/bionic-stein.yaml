@@ -5,19 +5,16 @@ applications:
     num_units: 1
     options:
       source: cloud:bionic-stein
-    channel: candidate
   keystone:
     charm: cs:~openstack-charmers/keystone
     num_units: 1
     options:
       openstack-origin: cloud:bionic-stein
-    channel: candidate
   rabbitmq-server:
     charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     options:
       source: cloud:bionic-stein
-    channel: candidate
   cinder:
     charm: cs:~openstack-charmers/cinder
     num_units: 1
@@ -25,30 +22,25 @@ applications:
       block-device: None
       glance-api-version: 2
       openstack-origin: cloud:bionic-stein
-    channel: candidate
   cinder-ceph:
     charm: cs:~openstack-charmers/cinder-ceph
     num_units: 0
-    channel: candidate
   glance:
     charm: cs:~openstack-charmers/glance
     num_units: 1
     options:
       openstack-origin: cloud:bionic-stein
-    channel: candidate
   nova-compute:
     charm: cs:~openstack-charmers/nova-compute
     num_units: 1
     options:
       openstack-origin: cloud:bionic-stein
-    channel: candidate
   ceph-mon:
     charm: cs:~openstack-charmers/ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
       source: cloud:bionic-stein
-    channel: candidate
   ceph-osd:
     charm: cs:~openstack-charmers/ceph-osd
     num_units: 3
@@ -57,7 +49,6 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
-    channel: candidate
   ceph-rbd-mirror:
     series: bionic
     charm: ../../../ceph-rbd-mirror
@@ -70,7 +61,6 @@ applications:
     options:
       expected-osd-count: 3
       source: cloud:bionic-stein
-    channel: candidate
   ceph-osd-b:
     charm: cs:~openstack-charmers/ceph-osd
     num_units: 3
@@ -79,7 +69,6 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: /opt
-    channel: candidate
   ceph-rbd-mirror-b:
     series: bionic
     charm: ../../../ceph-rbd-mirror
