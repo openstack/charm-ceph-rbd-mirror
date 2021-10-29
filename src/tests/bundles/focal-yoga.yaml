@@ -1,7 +1,7 @@
 variables:
-  openstack-origin: &openstack-origin distro
+  openstack-origin: &openstack-origin cloud:focal-yoga
 
-series: &series groovy
+series: &series focal
 
 machines:
   '0':
@@ -53,8 +53,6 @@ applications:
   cinder-ceph:
     charm: cs:~openstack-charmers-next/cinder-ceph
     num_units: 0
-    options:
-      rbd-mirroring-mode: image
 
   glance:
     charm: cs:~openstack-charmers-next/glance
@@ -143,8 +141,6 @@ relations:
   - cinder-ceph
 - - cinder-ceph:ceph
   - ceph-mon:client
-- - cinder-ceph:ceph-replication-device
-  - ceph-mon-b:client
 
 - - nova-compute:ceph-access
   - cinder-ceph:ceph-access

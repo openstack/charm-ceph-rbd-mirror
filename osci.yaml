@@ -6,6 +6,18 @@
       - bionic-train_ceph-rbd-mirror
       - bionic-stein_ceph-rbd-mirror
       - bionic-queens_ceph-rbd-mirror
+      - bionic-ussuri_ceph-rbd-mirror
+      - focal-ussuri_ceph-rbd-mirror
+      - focal-victoria_ceph-rbd-mirror
+      - focal-wallaby_ceph-rbd-mirror
+      - focal-xena_ceph-rbd-mirror
+      - focal-yoga_ceph-rbd-mirror:
+          voting: false
+      - hirsute-wallaby_ceph-rbd-mirror
+      - impish-xena_ceph-rbd-mirror:
+          voting: false
+      - jammy-yoga_ceph-rbd-mirror:
+          voting: false
     vars:
       needs_charm_build: true
       charm_build_name: ceph-rbd-mirror
@@ -26,5 +38,41 @@
       - bionic-train_ceph-rbd-mirror
 - job:
     name: bionic-stein_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: bionic-ussuri_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: focal-ussuri_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: focal-victoria_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: focal-wallaby_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: focal-xena_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: focal-yoga_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: hirsute-wallaby_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: impish-xena_ceph-rbd-mirror
+    parent: bionic-stein
+    dependencies: *smoke-jobs
+- job:
+    name: jammy-yoga_ceph-rbd-mirror
     parent: bionic-stein
     dependencies: *smoke-jobs

@@ -15,7 +15,6 @@ tags:
 - file-servers
 - misc
 series:
-- xenial
 - bionic
 - focal
 - groovy
