@@ -1,6 +1,6 @@
 - project:
     templates:
-      - charm-unit-jobs
+      - charm-yoga-unit-jobs
     check:
       jobs:
       - bionic-train_ceph-rbd-mirror
@@ -27,10 +27,9 @@
     parent: bionic-train
     dependencies:
       - osci-lint
-      - tox-py35
       - tox-py36
-      - tox-py37
       - tox-py38
+      - tox-py39
 - job:
     name: bionic-queens_ceph-rbd-mirror
     parent: bionic-queens
