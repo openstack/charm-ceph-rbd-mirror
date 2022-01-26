@@ -1,38 +1,21 @@
 charm_name: ceph-rbd-mirror
 smoke_bundles:
-- focal-ussuri
+- focal-xena
 gate_bundles:
-- bionic-queens
-- bionic-queens-e2e
-- bionic-queens-e2e-lxd
-- bionic-stein
-- bionic-ussuri
-- focal-ussuri
-- focal-ussuri-image-mirroring
-- focal-victoria
-- focal-victoria-image-mirroring
-- focal-wallaby
-- focal-wallaby-image-mirroring
 - focal-xena
 - focal-xena-image-mirroring
-- hirsute-wallaby
-- hirsute-wallaby-image-mirroring
 - impish-xena
 - impish-xena-image-mirroring
 comment: |
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
 dev_bundles:
-- bionic-rocky
-- bionic-train
-- bionic-train-image-mirroring
-# This is a dev bundle because we hit https://bugs.launchpad.net/charm-ceph-rbd-mirror/+bug/1892201.
-- bionic-ussuri-image-mirroring
 - focal-yoga
 - focal-yoga-image-mirroring
 - jammy-yoga
 - jammy-yoga-image-mirroring
 configure:
+- zaza.openstack.charm_tests.glance.setup.add_cirros_image
 - zaza.openstack.charm_tests.glance.setup.add_lts_image
 tests:
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
@@ -40,8 +23,6 @@ tests:
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest
 tests_options:
   force_deploy:
-    - hirsute-wallaby
-    - hirsute-wallaby-image-mirroring
     - impish-xena
     - impish-xena-image-mirroring
     - jammy-yoga
