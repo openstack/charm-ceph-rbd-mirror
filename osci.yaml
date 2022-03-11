@@ -1,30 +1,45 @@
 - project:
     templates:
-      - charm-unit-jobs
+      - charm-unit-jobs-py38
     check:
       jobs:
-      - bionic-train_ceph-rbd-mirror
-      - bionic-stein_ceph-rbd-mirror
-      - bionic-queens_ceph-rbd-mirror
+        - focal-ussuri_ceph-rbd
+        - focal-ussuri_ceph-rbd-mirror
+        - focal-wallaby_ceph-rbd
+        - focal-wallaby_ceph-rbd-mirror
     vars:
       needs_charm_build: true
       charm_build_name: ceph-rbd-mirror
+      build_type: charmcraft
 
 - job:
-    name: bionic-train_ceph-rbd-mirror
-    parent: bionic-train
+    name: focal-wallaby_ceph-rbd
+    parent: func-target
     dependencies:
       - osci-lint
-      - tox-py35
-      - tox-py36
-      - tox-py37
       - tox-py38
+      - charm-build
+    vars:
+      tox_extra_args: focal-wallaby
 - job:
-    name: bionic-queens_ceph-rbd-mirror
-    parent: bionic-queens
-    dependencies: &smoke-jobs
-      - bionic-train_ceph-rbd-mirror
+    name: focal-wallaby_ceph-rbd-mirror
+    parent: func-target
+    dependencies:
+      - focal-wallaby_ceph-rbd
+    vars:
+      tox_extra_args: focal-wallaby-image-mirroring
+
 - job:
-    name: bionic-stein_ceph-rbd-mirror
-    parent: bionic-stein
-    dependencies: *smoke-jobs
+    name: focal-ussuri_ceph-rbd
+    parent: func-target
+    dependencies:
+      - focal-wallaby_ceph-rbd
+    vars:
+      tox_extra_args: focal-ussuri
+- job:
+    name: focal-ussuri_ceph-rbd-mirror
+    parent: func-target
+    dependencies:
+      - focal-wallaby_ceph-rbd
+    vars:
+      tox_extra_args: focal-ussuri-image-mirroring

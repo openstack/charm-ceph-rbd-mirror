@@ -51,7 +51,10 @@ class TestCephRBDMirrorCharm(Helper):
                 {'stopped': 2, 'replaying': 2}),
         })
         result = crmc.custom_assess_status_check()
-        self.assertTrue('blocked' in result[0])
+        # Disabling blocked state until
+        # https://bugs.launchpad.net/charm-ceph-rbd-mirror/+bug/1879749
+        # is resolved
+        # self.assertTrue('blocked' in result[0])
         # the order of which the statuses appear in the string is undefined
         self.assertTrue('OK (1)' in result[1])
         self.assertTrue('WARN (1)' in result[1])
