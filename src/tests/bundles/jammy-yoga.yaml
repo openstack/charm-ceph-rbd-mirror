@@ -151,9 +151,9 @@ relations:
 - - rabbitmq-server
   - cinder
 
-- - keystone
+- - 'keystone:identity-service'
   - cinder
-- - keystone
+- - 'keystone:identity-service'
   - glance
 
 - - cinder
