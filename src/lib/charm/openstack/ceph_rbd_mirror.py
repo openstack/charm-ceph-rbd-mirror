@@ -93,12 +93,17 @@ class CephRBDMirrorCharm(charms_openstack.plugins.CephCharm):
             status = 'active'
             pool_msg = ''
             image_msg = ''
+
             for health, count in stats['pool_health'].items():
                 if not pool_msg:
                     pool_msg = 'Pools '
                 pool_msg += '{} ({}) '.format(health, count)
-                if health != 'OK':
-                    status = 'blocked'
+
+                # Disabling blocked state until
+                # https://bugs.launchpad.net/charm-ceph-rbd-mirror/+bug/1879749
+                # is resolved
+                # if health != 'OK':
+                #     status = 'blocked'
             for state, count in stats['image_states'].items():
                 if not image_msg:
                     image_msg = 'Images '

@@ -1,48 +1,51 @@
 series: bionic
 applications:
   mysql:
-    charm: cs:~openstack-charmers/percona-cluster
+    charm: ch:percona-cluster
     num_units: 1
     options:
       source: cloud:bionic-ussuri
   keystone:
-    charm: cs:~openstack-charmers/keystone
+    charm: ch:keystone
     num_units: 1
     options:
       openstack-origin: cloud:bionic-ussuri
+    channel: ussuri/candidate
   rabbitmq-server:
-    charm: cs:~openstack-charmers/rabbitmq-server
+    charm: ch:rabbitmq-server
     num_units: 1
     options:
       source: cloud:bionic-ussuri
+    channel: 3.8/candidate
   cinder:
-    charm: cs:~openstack-charmers/cinder
+    charm: ch:cinder
     num_units: 1
     options:
       block-device: None
       glance-api-version: 2
       openstack-origin: cloud:bionic-ussuri
   cinder-ceph:
-    charm: cs:~openstack-charmers/cinder-ceph
+    charm: ch:cinder-ceph
     num_units: 0
   glance:
-    charm: cs:~openstack-charmers/glance
+    charm: ch:glance
     num_units: 1
     options:
       openstack-origin: cloud:bionic-ussuri
   nova-compute:
-    charm: cs:~openstack-charmers/nova-compute
+    charm: ch:nova-compute
     num_units: 1
     options:
       openstack-origin: cloud:bionic-ussuri
   ceph-mon:
-    charm: cs:~openstack-charmers/ceph-mon
+    charm: ch:ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
       source: cloud:bionic-ussuri
+    channel: octopus/candidate
   ceph-osd:
-    charm: cs:~openstack-charmers/ceph-osd
+    charm: ch:ceph-osd
     num_units: 3
     options:
       source: cloud:bionic-ussuri
@@ -50,20 +53,22 @@ applications:
       #use-direct-io: False
     storage:
       osd-devices: '10G'
+    channel: octopus/candidate
   ceph-rbd-mirror:
     series: bionic
-    charm: ../../../ceph-rbd-mirror
+    charm: ../../../ceph-rbd-mirror.charm
     num_units: 1
     options:
       source: cloud:bionic-ussuri
   ceph-mon-b:
-    charm: cs:~openstack-charmers/ceph-mon
+    charm: ch:ceph-mon
     num_units: 3
     options:
       expected-osd-count: 3
       source: cloud:bionic-ussuri
+    channel: octopus/candidate
   ceph-osd-b:
-    charm: cs:~openstack-charmers/ceph-osd
+    charm: ch:ceph-osd
     num_units: 3
     options:
       source: cloud:bionic-ussuri
@@ -71,9 +76,10 @@ applications:
       #use-direct-io: False
     storage:
       osd-devices: '10G'
+    channel: octopus/candidate
   ceph-rbd-mirror-b:
     series: bionic
-    charm: ../../../ceph-rbd-mirror
+    charm: ../../../ceph-rbd-mirror.charm
     num_units: 1
     options:
       source: cloud:bionic-ussuri
@@ -86,8 +92,8 @@ relations:
   - glance
 - - rabbitmq-server
   - cinder
-- - keystone
-  - cinder
+- - keystone:identity-service
+  - cinder:identity-service
 - - keystone
   - glance
 - - cinder
