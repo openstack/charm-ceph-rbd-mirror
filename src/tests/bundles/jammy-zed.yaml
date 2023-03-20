@@ -17,38 +17,34 @@ applications:
 
   keystone-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
   glance-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
   cinder-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
 
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
-    options:
-      source: *openstack-origin
     to:
       - '0'
       - '1'
       - '2'
-    channel: latest/edge
+    channel: 8.0/edge
 
   keystone:
     charm: ch:keystone
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: latest/edge
+    channel: zed/edge
 
   rabbitmq-server:
     charm: ch:rabbitmq-server
     num_units: 1
-    options:
-      source: *openstack-origin
-    channel: latest/edge
+    channel: 3.9/edge
 
   cinder:
     charm: ch:cinder
@@ -56,26 +52,27 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
-    channel: latest/edge
+      openstack-origin: *openstack-origin
+    channel: zed/edge
 
   cinder-ceph:
     charm: ch:cinder-ceph
     num_units: 0
-    channel: latest/edge
+    channel: zed/edge
 
   glance:
     charm: ch:glance
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: latest/edge
+    channel: zed/edge
 
   nova-compute:
     charm: ch:nova-compute
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: latest/edge
+    channel: zed/edge
 
   ceph-mon:
     charm: ch:ceph-mon

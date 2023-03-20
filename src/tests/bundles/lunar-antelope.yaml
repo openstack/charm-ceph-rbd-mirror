@@ -1,52 +1,86 @@
 variables:
   openstack-origin: &openstack-origin distro
+  series: &series lunar
+  infra-series: &infra-series jammy
 
 local_overlay_enabled: False
 
-series: &series kinetic
+series: *series
 
+comment:
+- 'machines section to decide order of deployment. database sooner = faster'
 machines:
   '0':
-    constraints: "mem=3072M"
+    constraints: mem=3072M
+    series: *infra-series
   '1':
-    constraints: "mem=3072M"
+    constraints: mem=3072M
+    series: *infra-series
   '2':
-    constraints: "mem=3072M"
+    constraints: mem=3072M
+    series: *infra-series
+  '3':
+    series: *infra-series
+  '4':
+  '5':
+  '6':
+  '7':
+  '8':
+  '9':
+  '10':
+  '11':
+  '12':
+  '13':
+  '14':
+  '15':
+  '16':
+  '17':
+  '18':
+  '19':
+  '20':
+  '21':
 
 applications:
 
   keystone-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
   glance-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
   cinder-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
 
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
     options:
-      source: *openstack-origin
+      # Reduce chances of spurious "super-read-only" failures, see lp:1882205
+      expel-timeout: 20
     to:
       - '0'
       - '1'
       - '2'
-    channel: 8.0/edge
+    channel: 8.0.19/edge
+    series: *infra-series
+    
+  rabbitmq-server:
+    charm: ch:rabbitmq-server
+    num_units: 1
+    to:
+      - '3'
+    channel: 3.9/edge
+    series: *infra-series
 
   keystone:
     charm: ch:keystone
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
-
-  rabbitmq-server:
-    charm: ch:rabbitmq-server
-    num_units: 1
-    channel: 3.9/edge
+    to:
+      - '4'
+    channel: 2023.1/edge
 
   cinder:
     charm: ch:cinder
@@ -54,33 +88,44 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
-    channel: zed/edge
+    to:
+      - '5'
+    channel: 2023.1/edge
 
   cinder-ceph:
     charm: ch:cinder-ceph
     num_units: 0
-    channel: zed/edge
+    channel: 2023.1/edge
 
   glance:
     charm: ch:glance
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    to:
+      - '6'
+    channel: 2023.1/edge
 
   nova-compute:
     charm: ch:nova-compute
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    to:
+      - '7'
+    channel: 2023.1/edge
 
   ceph-mon:
     charm: ch:ceph-mon
     num_units: 3
     options:
-      expected-osd-count: 3
       source: *openstack-origin
+      monitor-count: '3'
+      expected-osd-count: 3
+    to:
+      - '8'
+      - '9'
+      - '10'
     channel: quincy/edge
 
   ceph-osd:
@@ -93,6 +138,10 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: '/dev/test-non-existent'
+    to:
+      - '11'
+      - '12'
+      - '13'
     channel: quincy/edge
 
   ceph-rbd-mirror:
@@ -101,13 +150,20 @@ applications:
     num_units: 1
     options:
       source: *openstack-origin
+    to:
+      - '14'
 
   ceph-mon-b:
     charm: ch:ceph-mon
     num_units: 3
     options:
-      expected-osd-count: 3
       source: *openstack-origin
+      monitor-count: '3'
+      expected-osd-count: 3
+    to:
+      - '15'
+      - '16'
+      - '17'
     channel: quincy/edge
 
   ceph-osd-b:
@@ -120,6 +176,10 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: '/dev/test-non-existent'
+    to:
+      - '18'
+      - '19'
+      - '20'
     channel: quincy/edge
 
   ceph-rbd-mirror-b:
@@ -128,6 +188,8 @@ applications:
     num_units: 1
     options:
       source: *openstack-origin
+    to:
+      - '21'
 
 relations:
 
