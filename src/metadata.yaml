@@ -16,7 +16,7 @@ tags:
 - misc
 series:
 - focal
-- impish
+- jammy
 extra-bindings:
   public:
   cluster:

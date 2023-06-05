@@ -1,17 +1,14 @@
 - project:
     templates:
       - charm-unit-jobs-py38
-      - charm-unit-jobs-py39
+      - charm-unit-jobs-py310
     check:
       jobs:
-      - focal-xena
-      - focal-yoga:
-          voting: false
-      - impish-xena:
-          voting: false
+      - focal-yoga
       - jammy-yoga:
           voting: false
     vars:
       needs_charm_build: true
       charm_build_name: ceph-rbd-mirror
       build_type: charmcraft
+      charmcraft_channel: 2.1/stable
