@@ -17,8 +17,8 @@ tags:
 series:
 - focal
 - jammy
-- kinetic
 - lunar
+- mantic
 extra-bindings:
   public:
   cluster:

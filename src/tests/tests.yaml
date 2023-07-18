@@ -6,6 +6,8 @@ gate_bundles:
 - focal-xena-image-mirroring
 - impish-xena
 - impish-xena-image-mirroring
+- jammy-bobcat
+- mantic-bobcat
 comment: |
   The e2e bundles are useful for development but adds no additional value to
   the functional tests.
@@ -14,10 +16,6 @@ dev_bundles:
 - focal-yoga-image-mirroring
 - jammy-yoga
 - jammy-yoga-image-mirroring
-- jammy-zed
-- jammy-zed-image-mirroring
-- kinetic-zed
-- kinetic-zed-image-mirroring
 configure:
 - zaza.openstack.charm_tests.glance.setup.add_cirros_image
 - zaza.openstack.charm_tests.glance.setup.add_lts_image
@@ -27,5 +25,4 @@ tests:
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorDisasterFailoverTest
 tests_options:
   force_deploy:
-    - kinetic-zed
-    - kinetic-zed-image-mirroring
+    - mantic-bobcat

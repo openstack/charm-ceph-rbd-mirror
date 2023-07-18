@@ -1,9 +1,10 @@
 variables:
-  openstack-origin: &openstack-origin cloud:jammy-zed
+  openstack-origin: &openstack-origin cloud:jammy-bobcat
+  series: &series jammy
 
 local_overlay_enabled: False
 
-series: &series jammy
+series: *series
 
 machines:
   '0':
@@ -17,13 +18,13 @@ applications:
 
   keystone-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
   glance-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
   cinder-mysql-router:
     charm: ch:mysql-router
-    channel: 8.0/edge
+    channel: latest/edge
 
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
@@ -32,14 +33,14 @@ applications:
       - '0'
       - '1'
       - '2'
-    channel: 8.0/edge
+    channel: 8.0.19/edge
 
   keystone:
     charm: ch:keystone
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    channel: latest/edge
 
   rabbitmq-server:
     charm: ch:rabbitmq-server
@@ -53,26 +54,26 @@ applications:
       block-device: None
       glance-api-version: 2
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    channel: latest/edge
 
   cinder-ceph:
     charm: ch:cinder-ceph
     num_units: 0
-    channel: zed/edge
+    channel: latest/edge
 
   glance:
     charm: ch:glance
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    channel: latest/edge
 
   nova-compute:
     charm: ch:nova-compute
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    channel: zed/edge
+    channel: latest/edge
 
   ceph-mon:
     charm: ch:ceph-mon
@@ -80,7 +81,7 @@ applications:
     options:
       expected-osd-count: 3
       source: *openstack-origin
-    channel: quincy/edge
+    channel: latest/edge
 
   ceph-osd:
     charm: ch:ceph-osd
@@ -92,7 +93,7 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: '/dev/test-non-existent'
-    channel: quincy/edge
+    channel: latest/edge
 
   ceph-rbd-mirror:
     series: *series
@@ -107,7 +108,7 @@ applications:
     options:
       expected-osd-count: 3
       source: *openstack-origin
-    channel: quincy/edge
+    channel: latest/edge
 
   ceph-osd-b:
     charm: ch:ceph-osd
@@ -119,7 +120,7 @@ applications:
       bluestore: False
       use-direct-io: False
       osd-devices: '/dev/test-non-existent'
-    channel: quincy/edge
+    channel: latest/edge
 
   ceph-rbd-mirror-b:
     series: *series
