@@ -9,6 +9,7 @@ description: |
   the ``rbd`` application are selected.
 
   NOTE: The charm requires Ceph Luminous or later.
+docs: https://discourse.charmhub.io/t/ceph-rbd-mirror-docs-index/11006
 tags:
 - openstack
 - storage
