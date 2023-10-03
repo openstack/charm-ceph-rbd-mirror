@@ -1,11 +1,7 @@
 charm_name: ceph-rbd-mirror
 smoke_bundles:
-- focal-xena
+- jammy-antelope
 gate_bundles:
-- focal-xena
-- focal-xena-image-mirroring
-- impish-xena
-- impish-xena-image-mirroring
 - jammy-bobcat
 - mantic-bobcat
 comment: |
