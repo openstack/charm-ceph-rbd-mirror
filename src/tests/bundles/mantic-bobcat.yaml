@@ -135,8 +135,6 @@ applications:
       osd-devices: 'cinder,10G'
     options:
       source: *openstack-origin
-      bluestore: False
-      use-direct-io: False
       osd-devices: '/dev/test-non-existent'
     to:
       - '11'
@@ -173,8 +171,6 @@ applications:
       osd-devices: 'cinder,10G'
     options:
       source: *openstack-origin
-      bluestore: False
-      use-direct-io: False
       osd-devices: '/dev/test-non-existent'
     to:
       - '18'

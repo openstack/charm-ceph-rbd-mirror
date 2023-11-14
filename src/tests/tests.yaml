@@ -18,7 +18,6 @@ dev_bundles:
 - jammy-yoga-image-mirroring
 configure:
 - zaza.openstack.charm_tests.glance.setup.add_cirros_image
-- zaza.openstack.charm_tests.glance.setup.add_lts_image
 tests:
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorTest
 - zaza.openstack.charm_tests.ceph.rbd_mirror.tests.CephRBDMirrorControlledFailoverTest
