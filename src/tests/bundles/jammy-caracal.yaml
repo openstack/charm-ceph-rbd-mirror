@@ -1,44 +1,18 @@
 variables:
-  openstack-origin: &openstack-origin distro
-  series: &series mantic
-  infra-series: &infra-series jammy
+  openstack-origin: &openstack-origin cloud:jammy-caracal
+  series: &series jammy
 
 local_overlay_enabled: False
 
 series: *series
 
-comment:
-- 'machines section to decide order of deployment. database sooner = faster'
 machines:
   '0':
-    constraints: mem=3072M
-    series: *infra-series
+    constraints: "mem=3072M"
   '1':
-    constraints: mem=3072M
-    series: *infra-series
+    constraints: "mem=3072M"
   '2':
-    constraints: mem=3072M
-    series: *infra-series
-  '3':
-    series: *infra-series
-  '4':
-  '5':
-  '6':
-  '7':
-  '8':
-  '9':
-  '10':
-  '11':
-  '12':
-  '13':
-  '14':
-  '15':
-  '16':
-  '17':
-  '18':
-  '19':
-  '20':
-  '21':
+    constraints: "mem=3072M"
 
 applications:
 
@@ -55,31 +29,22 @@ applications:
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
-    options:
-      # Reduce chances of spurious "super-read-only" failures, see lp:1882205
-      expel-timeout: 20
     to:
       - '0'
       - '1'
       - '2'
-    channel: 8.0.19/edge
-    series: *infra-series
-    
-  rabbitmq-server:
-    charm: ch:rabbitmq-server
-    num_units: 1
-    to:
-      - '3'
-    channel: 3.9/edge
-    series: *infra-series
+    channel: latest/edge
 
   keystone:
     charm: ch:keystone
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    to:
-      - '4'
+    channel: latest/edge
+
+  rabbitmq-server:
+    charm: ch:rabbitmq-server
+    num_units: 1
     channel: latest/edge
 
   cinder:
@@ -88,8 +53,7 @@ applications:
     options:
       block-device: None
       glance-api-version: 2
-    to:
-      - '5'
+      openstack-origin: *openstack-origin
     channel: latest/edge
 
   cinder-ceph:
@@ -102,8 +66,6 @@ applications:
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    to:
-      - '6'
     channel: latest/edge
 
   nova-compute:
@@ -111,21 +73,14 @@ applications:
     num_units: 1
     options:
       openstack-origin: *openstack-origin
-    to:
-      - '7'
     channel: latest/edge
 
   ceph-mon:
     charm: ch:ceph-mon
     num_units: 3
     options:
-      source: *openstack-origin
-      monitor-count: '3'
       expected-osd-count: 3
-    to:
-      - '8'
-      - '9'
-      - '10'
+      source: *openstack-origin
     channel: latest/edge
 
   ceph-osd:
@@ -136,10 +91,6 @@ applications:
     options:
       source: *openstack-origin
       osd-devices: '/dev/test-non-existent'
-    to:
-      - '11'
-      - '12'
-      - '13'
     channel: latest/edge
 
   ceph-rbd-mirror:
@@ -148,20 +99,13 @@ applications:
     num_units: 1
     options:
       source: *openstack-origin
-    to:
-      - '14'
 
   ceph-mon-b:
     charm: ch:ceph-mon
     num_units: 3
     options:
-      source: *openstack-origin
-      monitor-count: '3'
       expected-osd-count: 3
-    to:
-      - '15'
-      - '16'
-      - '17'
+      source: *openstack-origin
     channel: latest/edge
 
   ceph-osd-b:
@@ -172,10 +116,6 @@ applications:
     options:
       source: *openstack-origin
       osd-devices: '/dev/test-non-existent'
-    to:
-      - '18'
-      - '19'
-      - '20'
     channel: latest/edge
 
   ceph-rbd-mirror-b:
@@ -184,8 +124,6 @@ applications:
     num_units: 1
     options:
       source: *openstack-origin
-    to:
-      - '21'
 
 relations:
 
