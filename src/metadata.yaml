@@ -16,8 +16,7 @@ tags:
 - file-servers
 - misc
 series:
-- focal
-- jammy
+- noble
 extra-bindings:
   public:
   cluster:
